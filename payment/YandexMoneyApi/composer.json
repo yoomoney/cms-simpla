@@ -1,0 +1,12 @@
+{
+  "require": {
+    "php": ">=5.4",
+    "yandex-money/yandex-money-sdk-php": "dev-dev"
+  },
+  "repositories": [
+    {
+      "type": "git",
+      "url": "ssh://git@bitbucket-public.yamoney.ru/cms/php-sdk-api.git"
+    }
+  ]
+}

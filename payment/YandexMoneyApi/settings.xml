@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module>
+	<name>
+		Яндекс.Касса (версия 2.0.0)
+	</name>
+	<settings>
+		<variable>yandex_api_shopid</variable>
+		<name>Идентификатор магазина (shopID)</name>
+	</settings>
+	<settings>
+		<variable>yandex_api_password</variable>
+		<name>Секретный ключ</name>
+	</settings>
+	<settings>
+		<variable>yandex_api_paymode</variable>
+		<name>Выбор способа оплаты</name>
+		<options>
+			<name>На стороне Кассы</name>
+			<value>kassa</value>
+		</options>
+		<options>
+			<name>На стороне магазина</name>
+			<value>site</value>
+		</options>
+	</settings>
+	<settings>
+		<variable>yandex_api_paymenttype</variable>
+		<name>Способ оплаты (для режима оплаты с выбором на стороне магазина)</name>
+		<options>
+			<name>Не задан</name>
+			<value></value>
+		</options>
+		<options>
+			<name>Яндекс.Деньгах</name>
+			<value>yandex_money</value>
+		</options>
+		<options>
+			<name>Банковские карты — Visa, Mastercard и Maestro, «Мир»</name>
+			<value>bank_card</value>
+		</options>
+		<options>
+			<name>Оплата наличными через кассы и терминалы</name>
+			<value>cash</value>
+		</options>
+		<options>
+			<name>WebMoney</name>
+			<value>webmoney</value>
+		</options>
+		<options>
+			<name>Альфа-Клик</name>
+			<value>alfabank</value>
+		</options>
+		<options>
+			<name>Сбербанк Онлайн</name>
+			<value>sberbank</value>
+		</options>
+		<options>
+			<name>QIWI Wallet</name>
+			<value>qiwi</value>
+		</options>
+	</settings>
+	<settings>
+		<variable>ya_kassa_api_send_check</variable>
+		<name>Отправлять в Яндекс.Кассу данные для чеков (54-ФЗ)</name>
+		<options>
+			<name>Включить</name>
+			<value>1</value>
+		</options>
+        <options>
+            <name>Выключить</name>
+            <value>0</value>
+        </options>
+	</settings>
+    <settings>
+        <variable>ya_kassa_api_tax</variable>
+        <name>Ставка по умолчанию</name>
+        <options>
+            <name>Без НДС</name>
+            <value>1</value>
+        </options>
+        <options>
+            <name>0%</name>
+            <value>2</value>
+        </options>
+        <options>
+            <name>10%</name>
+            <value>3</value>
+        </options>
+        <options>
+            <name>18%</name>
+            <value>4</value>
+        </options>
+        <options>
+            <name>Рассчётная ставка 10/110</name>
+            <value>5</value>
+        </options>
+        <options>
+            <name>Рассчётная ставка 18/118</name>
+            <value>6</value>
+        </options>
+    </settings>
+	<settings>
+		<variable>ya_kassa_debug</variable>
+		<name>Запись отладочной информации</name>
+		<options>
+			<name>Включить</name>
+			<value>1</value>
+		</options>
+		<options>
+			<name>Выключить</name>
+			<value>0</value>
+		</options>
+	</settings>
+</module>
