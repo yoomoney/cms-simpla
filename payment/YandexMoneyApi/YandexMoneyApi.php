@@ -1,12 +1,12 @@
 <?php
 /**
- * Version: 1.0.1
+ * Version: 1.0.2
  * License: Любое использование Вами программы означает полное и безоговорочное принятие Вами условий лицензионного договора, размещенного по адресу https://money.yandex.ru/doc.xml?id=527132 (далее – «Лицензионный договор»). Если Вы не принимаете условия Лицензионного договора в полном объёме, Вы не имеете права использовать программу в каких-либо целях.
  */
 require_once('api/Simpla.php');
 require_once 'YandexMoneyLogger.php';
 require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'vendor/autoload.php';
-define(YAMONEY_MODULE_VERSION, '1.0.1');
+define(YAMONEY_MODULE_VERSION, '1.0.2');
 use YaMoney\Client\YandexMoneyApi as Api;
 use YaMoney\Request\Payments\CreatePaymentRequest;
 
@@ -73,6 +73,7 @@ class YandexMoneyApi extends Simpla
                                            ->setMetadata(array(
                                                'cms_name'       => 'ya_api_simpla',
                                                'module_version' => YAMONEY_MODULE_VERSION,
+                                               'order_id'       => $order_id,
                                            ));
 
             if (isset($settings['ya_kassa_api_send_check']) && $settings['ya_kassa_api_send_check']) {

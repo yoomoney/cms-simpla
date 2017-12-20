@@ -15,9 +15,7 @@ $invoice_id = $simpla->request->post('invoiceId');
 $action = $simpla->request->get('action');
 
 if ($action == 'notify') {
-    $body           = @file_get_contents('php://input');
-    $callbackParams = json_decode($body);
-    $handler->processNotification($simpla, $callbackParams);
+    $handler->processNotification($simpla);
 } else {
     $handler->processReturnUrl($simpla);
 }
