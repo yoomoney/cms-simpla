@@ -43,7 +43,7 @@ class YandexMoneyCallbackHandler
             } elseif ($paymentInfo->status == PaymentStatus::CANCELED) {
                 $simpla->orders->close($order->id);
             } elseif ($paymentInfo->status == PaymentStatus::SUCCEEDED) {
-                $this->completePayment($order);
+                $this->completePayment($order, $paymentId);
             }
 
             $return_url = $simpla->config->root_url.'/order/'.$order->url;
@@ -67,6 +67,7 @@ class YandexMoneyCallbackHandler
             $paymentMethod = $simpla->payment->get_payment_method(intval($order->payment_method_id));
             $settings      = $simpla->payment->get_payment_settings($paymentMethod->id);
             $apiClient     = $this->getApiClient($settings['yandex_api_shopid'], $settings['yandex_api_password']);
+            $paymentId     = $payment->getId();
             if ($order) {
 
                 $tries = 0;
@@ -86,7 +87,7 @@ class YandexMoneyCallbackHandler
                         case PaymentStatus::WAITING_FOR_CAPTURE:
                             $captureResult = $this->capturePayment($apiClient, $paymentInfo, $order);
                             if ($captureResult->status == PaymentStatus::SUCCEEDED) {
-                                $this->completePayment($order);
+                                $this->completePayment($order, $paymentId);
                             } else {
                                 $simpla->orders->close($order);
                             }
@@ -98,7 +99,7 @@ class YandexMoneyCallbackHandler
                             header("Status: 400 Bad Request");
                             break;
                         case PaymentStatus::SUCCEEDED:
-                            $this->completePayment($order);
+                            $this->completePayment($order, $paymentId );
                             header("HTTP/1.1 200 OK");
                             header("Status: 200 OK");
                             break;
@@ -167,20 +168,21 @@ class YandexMoneyCallbackHandler
 
     private function getPaymentId($orderId)
     {
-        $sql = 'SELECT o.payment_details FROM __orders AS o WHERE o.id='.$this->simplaApi->db->escape((int)$orderId);
+        $sql   = 'SELECT o.payment_details FROM __orders AS o WHERE o.id='.$this->simplaApi->db->escape((int)$orderId);
         $query = $this->simplaApi->db->placehold($sql);
         $this->simplaApi->db->query($query);
+
         return $this->simplaApi->db->result('payment_details');
     }
 
     private function completePayment($order, $paymentId)
     {
         $comment = "Номер транзакции в Яндекс.Кассе: {$paymentId}. Сумма: {$order->total_price}";
-        $query  = $this->simplaApi->db->placehold(
+        $query   = $this->simplaApi->db->placehold(
             "UPDATE s_orders SET paid=1, status=2, payment_date=NOW(),comment='{$comment}',modified=NOW() WHERE id=?",
             intval($order->id)
         );
-        $result = $this->simplaApi->db->query($query);
+        $result  = $this->simplaApi->db->query($query);
 
         // отправляем уведомление администратору
         $this->simplaApi->notify->email_order_admin((int)$order->id);
