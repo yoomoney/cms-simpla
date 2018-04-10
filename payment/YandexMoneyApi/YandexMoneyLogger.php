@@ -36,6 +36,10 @@ class YandexMoneyLogger
         $filePath       = __DIR__.DIRECTORY_SEPARATOR.'log'.DIRECTORY_SEPARATOR.'ym-checkout-debug.log';
         if ($this->isDebugEnabled) {
             if (!file_exists($filePath)) {
+                $dir = dirname($filePath);
+                if (!is_writable($dir)) {
+                    mkdir($dir);
+                }
                 touch($filePath);
                 chmod($filePath, 0644);
             }

@@ -1,19 +1,35 @@
 <?php
 /**
- * Version: 1.0.3
+ * Version: 1.0.4
  * License: Любое использование Вами программы означает полное и безоговорочное принятие Вами условий лицензионного договора, размещенного по адресу https://money.yandex.ru/doc.xml?id=527132 (далее – «Лицензионный договор»). Если Вы не принимаете условия Лицензионного договора в полном объёме, Вы не имеете права использовать программу в каких-либо целях.
  */
-require_once('api/Simpla.php');
+require_once 'api/Simpla.php';
+require_once 'autoload.php';
 require_once 'YandexMoneyLogger.php';
-require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'vendor/autoload.php';
-define(YAMONEY_MODULE_VERSION, '1.0.3');
-use YaMoney\Client\YandexMoneyApi as Api;
-use YaMoney\Request\Payments\CreatePaymentRequest;
+define(YAMONEY_MODULE_VERSION, '1.0.4');
+
+use YandexCheckout\Client;
+use YandexCheckout\Request\Payments\CreatePaymentRequest;
 
 class YandexMoneyApi extends Simpla
 {
     const DEFAULT_TAX_RATE_ID = 1;
 
+    /**
+     * @param int|mixed $order_id
+     * @param string|null $button_text
+     * @throws Exception
+     * @throws \YandexCheckout\Common\Exceptions\ApiException
+     * @throws Exception
+     * @throws \YandexCheckout\Common\Exceptions\ForbiddenException
+     * @throws \YandexCheckout\Common\Exceptions\InternalServerError
+     * @throws \YandexCheckout\Common\Exceptions\NotFoundException
+     * @throws \YandexCheckout\Common\Exceptions\ResponseProcessingException
+     * @throws \YandexCheckout\Common\Exceptions\TooManyRequestsException
+     * @throws \YandexCheckout\Common\Exceptions\UnauthorizedException
+     *
+     * @return string
+     */
     public function checkout_form($order_id, $button_text = null)
     {
         if (empty($button_text)) {
@@ -28,9 +44,9 @@ class YandexMoneyApi extends Simpla
         $payment_sitemode = ($settings['yandex_api_paymode'] == 'site') ? true : false;
         $payment_type     = ($payment_sitemode) ? $settings['yandex_api_paymenttype'] : '';
 
-        if ($payment_type == \YaMoney\Model\PaymentMethodType::ALFABANK) {
+        if ($payment_type == \YandexCheckout\Model\PaymentMethodType::ALFABANK) {
             if (isset($_POST['alfabak_login']) && !empty($_POST['alfabak_login'])) {
-                $payment_type = new \YaMoney\Model\PaymentData\PaymentDataAlfabank();
+                $payment_type = new \YandexCheckout\Model\PaymentData\PaymentDataAlfabank();
                 try {
                     $payment_type->setLogin($_POST['alfabak_login']);
                 } catch (Exception $e) {
@@ -41,10 +57,10 @@ class YandexMoneyApi extends Simpla
             }
         }
 
-        if ($payment_type == \YaMoney\Model\PaymentMethodType::QIWI) {
+        if ($payment_type == \YandexCheckout\Model\PaymentMethodType::QIWI) {
             if (isset($_POST['qiwi_phone']) && !empty($_POST['qiwi_phone'])) {
 
-                $payment_type = new \YaMoney\Model\PaymentData\PaymentDataQiwi();
+                $payment_type = new \YandexCheckout\Model\PaymentData\PaymentDataQiwi();
                 $phone        = preg_replace('/[^\d]/', '', $_POST['qiwi_phone']);
                 try {
                     $payment_type->setPhone($phone);
@@ -57,16 +73,16 @@ class YandexMoneyApi extends Simpla
         }
 
         if (isset($_POST['submit-button'])) {
-            $apiClient = new Api();
+            $apiClient = new Client();
             $apiClient->setAuth($settings['yandex_api_shopid'], $settings['yandex_api_password']);
             $apiClient->setLogger(new YandexMoneyLogger($settings['ya_kassa_debug']));
             $builder = CreatePaymentRequest::builder()
                                            ->setAmount($amount)
                                            ->setPaymentMethodData($payment_type)
-                                           ->setCapture(false)
+                                           ->setCapture(true)
                                            ->setConfirmation(
                                                array(
-                                                   'type'      => \YaMoney\Model\ConfirmationType::REDIRECT,
+                                                   'type'      => \YandexCheckout\Model\ConfirmationType::REDIRECT,
                                                    'returnUrl' => $result_url,
                                                )
                                            )
@@ -96,20 +112,7 @@ class YandexMoneyApi extends Simpla
 
             $paymentRequest = $builder->build();
             $idempotencyKey = base64_encode($order->id.microtime());
-            $tries          = 0;
-            do {
-                $response = $apiClient->createPayment(
-                    $paymentRequest,
-                    $idempotencyKey
-                );
-                if ($response === null) {
-                    $tries++;
-                    if ($tries > 3) {
-                        break;
-                    }
-                    sleep(2);
-                }
-            } while ($response === null);
+            $response = $apiClient->createPayment($paymentRequest, $idempotencyKey);
 
             if ($response) {
                 $order->payment_details = $response->getId();
@@ -123,7 +126,8 @@ class YandexMoneyApi extends Simpla
     }
 
     /**
-     * @param $button_text
+     * @param string $button_text
+     * @param bool $error
      *
      * @return string
      */
@@ -146,7 +150,8 @@ class YandexMoneyApi extends Simpla
     }
 
     /**
-     * @param $button_text
+     * @param string $button_text
+     * @param bool $error
      *
      * @return string
      */
@@ -168,6 +173,10 @@ class YandexMoneyApi extends Simpla
         return $button;
     }
 
+    /**
+     * @param string $button_text
+     * @return string
+     */
     private function getForm($button_text)
     {
         $button = '<form method="POST" >

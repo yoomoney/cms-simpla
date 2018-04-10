@@ -3,6 +3,10 @@
 /**
  * Simpla CMS
  *
+ * @copyright 	2014 Denis Pikusov
+ * @link 		http://simplacms.ru
+ * @author 		Denis Pikusov
+ *
  * К этому скрипту обращается Яндекс.Касса в процессе оплаты
  *
  */
