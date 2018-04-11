@@ -1,9 +1,9 @@
 <?php
 
 chdir('../../');
-require_once('api/Simpla.php');
-require_once('vendor/autoload.php');
-require_once('YandexMoneyCallbackHandler.php');
+require_once 'api/Simpla.php';
+require_once 'autoload.php';
+require_once 'YandexMoneyCallbackHandler.php';
 
 
 $simpla  = new Simpla();
@@ -15,8 +15,8 @@ $invoice_id = $simpla->request->post('invoiceId');
 $action = $simpla->request->get('action');
 
 if ($action == 'notify') {
-    $handler->processNotification($simpla);
+    $handler->processNotification();
 } else {
-    $handler->processReturnUrl($simpla);
+    $handler->processReturnUrl();
 }
 

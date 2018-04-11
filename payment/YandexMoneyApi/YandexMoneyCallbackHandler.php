@@ -1,16 +1,17 @@
 <?php
-require_once('vendor/autoload.php');
+require_once 'autoload.php';
 require_once 'YandexMoneyLogger.php';
 
 if (!date_default_timezone_get()) {
     date_default_timezone_set('Europe/Moscow');
 }
 
-use YaMoney\Client\YandexMoneyApi;
-use YaMoney\Common\Exceptions\ApiException;
-use YaMoney\Model\Notification\NotificationWaitingForCapture;
-use YaMoney\Model\PaymentStatus;
-use YaMoney\Request\Payments\Payment\CreateCaptureRequest;
+use YandexCheckout\Client;
+use YandexCheckout\Model\Notification\NotificationSucceeded;
+use YandexCheckout\Model\Notification\NotificationWaitingForCapture;
+use YandexCheckout\Model\NotificationEventType;
+use YandexCheckout\Model\PaymentStatus;
+use YandexCheckout\Request\Payments\Payment\CreateCaptureRequest;
 
 class YandexMoneyCallbackHandler
 {
@@ -21,12 +22,12 @@ class YandexMoneyCallbackHandler
         $this->simplaApi = $simplaApi;
     }
 
-    public function processReturnUrl($simpla)
+    public function processReturnUrl()
     {
-        $orderId       = $simpla->request->get('order');
-        $order         = $simpla->orders->get_order(intval($orderId));
-        $paymentMethod = $simpla->payment->get_payment_method(intval($order->payment_method_id));
-        $settings      = $simpla->payment->get_payment_settings($paymentMethod->id);
+        $orderId       = $this->simplaApi->request->get('order');
+        $order         = $this->simplaApi->orders->get_order(intval($orderId));
+        $paymentMethod = $this->simplaApi->payment->get_payment_method(intval($order->payment_method_id));
+        $settings      = $this->simplaApi->payment->get_payment_settings($paymentMethod->id);
         $apiClient     = $this->getApiClient($settings['yandex_api_shopid'], $settings['yandex_api_password']);
         $paymentId     = $this->getPaymentId($orderId);
         $logger        = new YandexMoneyLogger($settings['ya_kassa_debug']);
@@ -34,133 +35,130 @@ class YandexMoneyCallbackHandler
         try {
             $paymentInfo = $apiClient->getPaymentInfo($paymentId);
             if ($paymentInfo->status == PaymentStatus::WAITING_FOR_CAPTURE) {
-                $captureResult = $this->capturePayment($apiClient, $paymentInfo, $order);
+                $captureResult = $this->capturePayment($apiClient, $paymentInfo);
                 if ($captureResult->status == PaymentStatus::SUCCEEDED) {
                     $this->completePayment($order, $paymentId);
+                    $logger->info('Complete payment #'.$paymentId.' orderId: '.$orderId);
                 } else {
-                    $simpla->orders->close($order->id);
+                    $this->simplaApi->orders->close($order->id);
+                    $logger->info('Close order. OrderId: '.$orderId);
                 }
             } elseif ($paymentInfo->status == PaymentStatus::CANCELED) {
-                $simpla->orders->close($order->id);
+                $this->simplaApi->orders->close($order->id);
             } elseif ($paymentInfo->status == PaymentStatus::SUCCEEDED) {
                 $this->completePayment($order, $paymentId);
+                $logger->info('Complete payment #'.$paymentId.' orderId: '.$orderId);
             }
 
-            $return_url = $simpla->config->root_url.'/order/'.$order->url;
+            $return_url = $this->simplaApi->config->root_url.'/order/'.$order->url;
             header('Location: '.$return_url);
             exit;
-        } catch (ApiException $e) {
+        } catch (Exception $e) {
+            $logger->error($e->getMessage());
             throw $e;
         }
     }
 
-    public function processNotification($simpla)
+    public function processNotification()
     {
         $body           = @file_get_contents('php://input');
         $callbackParams = json_decode($body, true);
-        if (!json_last_error()) {
-            $notificationModel = new NotificationWaitingForCapture($callbackParams);
-
-            $payment       = $notificationModel->getObject();
-            $orderId       = (int)$payment->getMetadata()->offsetGet('order_id');
-            $order         = $simpla->orders->get_order(intval($orderId));
-            $paymentMethod = $simpla->payment->get_payment_method(intval($order->payment_method_id));
-            $settings      = $simpla->payment->get_payment_settings($paymentMethod->id);
-            $apiClient     = $this->getApiClient($settings['yandex_api_shopid'], $settings['yandex_api_password']);
-            $paymentId     = $payment->getId();
-            if ($order) {
-
-                $tries = 0;
-                do {
-                    $paymentInfo = $apiClient->getPaymentInfo($payment->getId());
-                    if ($paymentInfo === null) {
-                        $tries++;
-                        if ($tries > 3) {
-                            break;
-                        }
-                        sleep(2);
-                    }
-                } while ($paymentInfo == null);
-
-                if ($paymentInfo) {
-                    switch ($paymentInfo->status) {
-                        case PaymentStatus::WAITING_FOR_CAPTURE:
-                            $captureResult = $this->capturePayment($apiClient, $paymentInfo, $order);
-                            if ($captureResult->status == PaymentStatus::SUCCEEDED) {
-                                $this->completePayment($order, $paymentId);
-                            } else {
-                                $simpla->orders->close($order);
-                            }
-                            header("HTTP/1.1 200 OK");
-                            header("Status: 200 OK");
-                            break;
-                        case PaymentStatus::PENDING:
-                            header("HTTP/1.1 400 Bad Request");
-                            header("Status: 400 Bad Request");
-                            break;
-                        case PaymentStatus::SUCCEEDED:
-                            $this->completePayment($order, $paymentId );
-                            header("HTTP/1.1 200 OK");
-                            header("Status: 200 OK");
-                            break;
-                        case PaymentStatus::CANCELED:
-                            $simpla->orders->close($order);
-                            header("HTTP/1.1 200 OK");
-                            header("Status: 200 OK");
-                            break;
-                    }
-                }
-
-            } else {
-                header("HTTP/1.1 404 Not Found");
-                header("Status: 404 Not Found");
-            }
-        } else {
+        if (json_last_error()) {
             header("HTTP/1.1 400 Bad Request");
             header("Status: 400 Bad Request");
+            exit();
+        }
+
+        $notificationModel = ($callbackParams['event'] === NotificationEventType::PAYMENT_SUCCEEDED)
+            ? new NotificationSucceeded($callbackParams)
+            : new NotificationWaitingForCapture($callbackParams);
+
+        $payment       = $notificationModel->getObject();
+        $orderId       = (int)$payment->getMetadata()->offsetGet('order_id');
+        $order         = $this->simplaApi->orders->get_order(intval($orderId));
+        $paymentMethod = $this->simplaApi->payment->get_payment_method(intval($order->payment_method_id));
+        $settings      = $this->simplaApi->payment->get_payment_settings($paymentMethod->id);
+        $apiClient     = $this->getApiClient($settings['yandex_api_shopid'], $settings['yandex_api_password']);
+        $logger        = new YandexMoneyLogger($settings['ya_kassa_debug']);
+        $logger->info('Notification: '.$body);
+        $apiClient->setLogger($logger);
+        $paymentId     = $payment->getId();
+        if (!$order) {
+            $logger->error('Order not found. OrderId: '.$orderId);
+            header("HTTP/1.1 404 Not Found");
+            header("Status: 404 Not Found");
+            exit();
+        }
+        $paymentInfo = $apiClient->getPaymentInfo($payment->getId());
+        if (!$paymentInfo) {
+            $logger->error('Empty payment info. OrderId: '.$orderId);
+            header("HTTP/1.1 404 Not Found");
+            header("Status: 404 Not Found");
+            exit();
+        }
+
+        switch ($paymentInfo->status) {
+            case PaymentStatus::WAITING_FOR_CAPTURE:
+                $captureResult = $this->capturePayment($apiClient, $paymentInfo);
+                $logger->info('Capture payment #'.$paymentId.' orderId: '.$orderId);
+                if ($captureResult->status === PaymentStatus::SUCCEEDED) {
+                    $this->completePayment($order, $paymentId);
+                    $logger->info('Complete payment #'.$paymentId.' orderId: '.$orderId);
+                } else {
+                    $this->simplaApi->orders->close($order);
+                    $logger->info('Close order. OrderId: '.$orderId);
+                }
+                header("HTTP/1.1 200 OK");
+                header("Status: 200 OK");
+                break;
+            case PaymentStatus::PENDING:
+                $logger->info('Pending payment. OrderId: '.$orderId.' paymentId: '.$paymentId);
+                header("HTTP/1.1 400 Bad Request");
+                header("Status: 400 Bad Request");
+                break;
+            case PaymentStatus::SUCCEEDED:
+                $this->completePayment($order, $paymentId );
+                $logger->info('Complete payment #'.$paymentId.' orderId: '.$orderId);
+                header("HTTP/1.1 200 OK");
+                header("Status: 200 OK");
+                break;
+            case PaymentStatus::CANCELED:
+                $this->simplaApi->orders->close($order);
+                $logger->info('Close order. OrderId: '.$orderId);
+                header("HTTP/1.1 200 OK");
+                header("Status: 200 OK");
+                break;
         }
         exit();
     }
 
     /**
-     * @param $apiClient
-     * @param $payment
-     * @param $order
+     * @param YandexCheckout\Client $apiClient
+     * @param object $payment
      *
-     * @return mixed
+     * @return YandexCheckout\Request\Payments\Payment\CreateCaptureResponse
      */
-    protected function capturePayment($apiClient, $payment, $order)
+    protected function capturePayment($apiClient, $payment)
     {
         $captureRequest = CreateCaptureRequest::builder()->setAmount($payment->getAmount())->build();
 
-        $tries = 0;
-        do {
-            $result = $apiClient->capturePayment(
-                $captureRequest,
-                $payment->id,
-                $payment->id
-            );
-            if ($result === null) {
-                $tries++;
-                if ($tries > 3) {
-                    break;
-                }
-                sleep(2);
-            }
-        } while ($result === null);
+        $result = $apiClient->capturePayment(
+            $captureRequest,
+            $payment->id
+        );
 
         return $result;
     }
 
     /**
-     * @param $shopId
-     * @param $shopPassword
+     * @param int|string $shopId
+     * @param string $shopPassword
      *
-     * @return YandexMoneyApi
+     * @return Client
      */
     protected function getApiClient($shopId, $shopPassword)
     {
-        $apiClient = new YandexMoneyApi();
+        $apiClient = new Client();
         $apiClient->setAuth($shopId, $shopPassword);
 
         return $apiClient;
