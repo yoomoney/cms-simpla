@@ -24,8 +24,24 @@
 		</options>
 	</settings>
 	<settings>
+		<variable>yandex_show_pay_with_yandex_button</variable>
+		<name>Отображение кнопок</name>
+		<options>
+			<name>Назвать кнопку оплаты «Заплатить через Яндекс»</name>
+			<value>1</value>
+		</options>
+	</settings>
+	<settings>
+		<variable>yandex_show_installments_button</variable>
+		<name> оплаты (для режима с выбором на стороне Кассы)</name>
+		<options>
+			<name>Добавить кнопку «Заплатить по частям» на страницу оформления заказа</name>
+			<value>1</value>
+		</options>
+	</settings>
+	<settings>
 		<variable>yandex_api_paymenttype</variable>
-		<name>Способ оплаты (для режима оплаты с выбором на стороне магазина)</name>
+		<name>Способ оплаты (для режима с выбором на стороне магазина)</name>
 		<options>
 			<name>Не задан</name>
 			<value></value>
@@ -57,6 +73,10 @@
 		<options>
 			<name>QIWI Wallet</name>
 			<value>qiwi</value>
+		</options>
+		<options>
+			<name>Заплатить по частям</name>
+			<value>installments</value>
 		</options>
 	</settings>
 	<settings>
