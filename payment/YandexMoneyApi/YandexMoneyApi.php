@@ -1,12 +1,12 @@
 <?php
 /**
- * Version: 1.0.4
+ * Version: 1.0.5
  * License: Любое использование Вами программы означает полное и безоговорочное принятие Вами условий лицензионного договора, размещенного по адресу https://money.yandex.ru/doc.xml?id=527132 (далее – «Лицензионный договор»). Если Вы не принимаете условия Лицензионного договора в полном объёме, Вы не имеете права использовать программу в каких-либо целях.
  */
 require_once 'api/Simpla.php';
 require_once 'autoload.php';
 require_once 'YandexMoneyLogger.php';
-define(YAMONEY_MODULE_VERSION, '1.0.4');
+define(YAMONEY_MODULE_VERSION, '1.0.5');
 
 use YandexCheckout\Client;
 use YandexCheckout\Request\Payments\CreatePaymentRequest;
@@ -14,6 +14,8 @@ use YandexCheckout\Request\Payments\CreatePaymentRequest;
 class YandexMoneyApi extends Simpla
 {
     const DEFAULT_TAX_RATE_ID = 1;
+
+    const INSTALLMENTS_MIN_AMOUNT = 3000;
 
     /**
      * @param int|mixed $order_id
@@ -44,6 +46,12 @@ class YandexMoneyApi extends Simpla
         $payment_sitemode = ($settings['yandex_api_paymode'] == 'site') ? true : false;
         $payment_type     = ($payment_sitemode) ? $settings['yandex_api_paymenttype'] : '';
 
+        if (($payment_type == \YandexCheckout\Model\PaymentMethodType::INSTALLMENTS)
+            && ($amount < self::INSTALLMENTS_MIN_AMOUNT)) {
+            return '<span style="color:#ec0060;">Заплатить этим способом не получится: сумма должна быть больше '
+                . self::INSTALLMENTS_MIN_AMOUNT . ' рублей.</span>';
+        }
+
         if ($payment_type == \YandexCheckout\Model\PaymentMethodType::ALFABANK) {
             if (isset($_POST['alfabak_login']) && !empty($_POST['alfabak_login'])) {
                 $payment_type = new \YandexCheckout\Model\PaymentData\PaymentDataAlfabank();
@@ -72,7 +80,10 @@ class YandexMoneyApi extends Simpla
             }
         }
 
-        if (isset($_POST['submit-button'])) {
+        if (isset($_POST['payment_submit'])) {
+            if (!empty($_POST['payment_type'])) {
+                $payment_type = $_POST['payment_type'];
+            }
             $apiClient = new Client();
             $apiClient->setAuth($settings['yandex_api_shopid'], $settings['yandex_api_password']);
             $apiClient->setLogger(new YandexMoneyLogger($settings['ya_kassa_debug']));
@@ -112,16 +123,23 @@ class YandexMoneyApi extends Simpla
 
             $paymentRequest = $builder->build();
             $idempotencyKey = base64_encode($order->id.microtime());
-            $response = $apiClient->createPayment($paymentRequest, $idempotencyKey);
+            try {
+                $response = $apiClient->createPayment($paymentRequest, $idempotencyKey);
+            } catch (Exception $exception) {
+                $logger = new YandexMoneyLogger($settings['ya_kassa_debug']);
+                $logger->error($exception->getMessage());
+            }
 
-            if ($response) {
+            if (!empty($response)) {
                 $order->payment_details = $response->getId();
                 $this->orders->update_order($order->id, $order);
                 $confirmationUrl = $response->confirmation->confirmationUrl;
                 header('Location: '.$confirmationUrl);
+            } else {
+                return '<span style="color:#ec0060;">Платеж не прошел. Попробуйте еще или выберите другой способ оплаты.</span>';
             }
         } else {
-            return $this->getForm($button_text);
+            return $this->getForm($button_text, $settings, $amount);
         }
     }
 
@@ -175,14 +193,144 @@ class YandexMoneyApi extends Simpla
 
     /**
      * @param string $button_text
+     * @param array $settings
+     * @param float $amount
      * @return string
      */
-    private function getForm($button_text)
+    private function getForm($button_text, $settings, $amount)
     {
-        $button = '<form method="POST" >
-					<input type="submit" name="submit-button" value="'.$button_text.'" class="checkout_button">
-                </form>';
+        ob_start();
+        ?>
+        <style type="text/css">
+            .yamoney_kassa_buttons {
+                display: flex;
+                margin-bottom: 20px;
+            }
 
-        return $button;
+            .ya_kassa_installments_button_container {
+                margin-right: 20px;
+            }
+
+            .yamoney-pay-button {
+                position: relative;
+                height: 60px;
+                width: 155px;
+                border-radius: 4px;
+                font-family: YandexSansTextApp-Regular, Arial, Helvetica, sans-serif;
+                text-align: center;
+            }
+
+            .yamoney-pay-button button {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border-radius: 4px;
+                transition: 0.1s ease-out 0s;
+                color: #000;
+                box-sizing: border-box;
+                outline: 0;
+                border: 0;
+                background: #FFDB4D;
+                cursor: pointer;
+                font-size: 12px;
+            }
+
+            .yamoney-pay-button button:hover, .yamoney-pay-button button:active {
+                background: #f2c200;
+            }
+
+            .yamoney-pay-button button span {
+                display: block;
+                font-size: 20px;
+                line-height: 20px;
+            }
+
+            .yamoney-pay-button_type_fly {
+                box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.12), 0 5px 10px -3px rgba(0, 0, 0, 0.3);
+            }
+
+            .ya_checkout_button {
+                cursor: pointer;
+            }
+
+            .ya_checkout_button:hover {
+                background-color: #abff87;
+            }
+        </style>
+        <form method="POST">
+            <input type="hidden" name="payment_submit"/>
+            <input type="hidden" name="payment_type" id="pm_yandex_money_payment_type" value=""/>
+            <?php
+            $onKassaSide = $settings['yandex_api_paymode'] === 'kassa';
+            $showInstallmentsButton = false;
+            $showPayWithYandexButton = false;
+
+            if ($onKassaSide) {
+                $showInstallmentsButton = $settings['yandex_show_installments_button'];
+                $showPayWithYandexButton = $settings['yandex_show_pay_with_yandex_button'];
+                if ($showInstallmentsButton || $showPayWithYandexButton) {
+                    ?>
+                    <div class="yamoney_kassa_buttons">
+                        <?php
+                        if ($showInstallmentsButton) {
+                            ?>
+                            <div class="ya_kassa_installments_button_container"></div>
+                            <?php
+                        }
+                        if ($showPayWithYandexButton) {
+                            ?>
+                            <div class="yamoney-pay-button <?= !$showInstallmentsButton ? ' yamoney-pay-button_type_fly' : ''; ?>">
+                                <button type="submit"><span>Заплатить</span>через Яндекс</button>
+                            </div>
+                            <?php
+                        }
+                        ?>
+                    </div>
+                <?php }
+            }
+            if (!$onKassaSide || ($onKassaSide && !$showPayWithYandexButton)) {
+                ?>
+                <input type="submit" name="submit-button" value="<?= $button_text; ?>"
+                       class="checkout_button ya_checkout_button">
+                <?php
+            }
+            ?>
+        </form>
+        <?php
+        if ($onKassaSide && $showInstallmentsButton) {
+            ?>
+            <script src="https://static.yandex.net/kassa/pay-in-parts/ui/v1/"></script>
+            <script type="text/javascript"><!--
+                jQuery(document).ready(function () {
+                    const yaShopId = <?= $settings['yandex_api_shopid']; ?>;
+                    const yaAmount = <?= $amount; ?>;
+
+                    function createCheckoutCreditUI() {
+                        if (!YandexCheckoutCreditUI) {
+                            setTimeout(createCheckoutCreditUI, 200);
+                        }
+                        const checkoutCreditUI = YandexCheckoutCreditUI({
+                            shopId: yaShopId,
+                            sum: yaAmount
+                        });
+                        const checkoutCreditButton = checkoutCreditUI({
+                            type: 'button',
+                            domSelector: '.ya_kassa_installments_button_container'
+                        });
+                        checkoutCreditButton.on('click', function () {
+                            jQuery('#pm_yandex_money_payment_type').val('installments');
+                        });
+                    };
+                    setTimeout(createCheckoutCreditUI, 200);
+                });
+                //--></script>
+            <?php
+        }
+        $html = ob_get_contents();
+        ob_end_clean();
+
+        return $html;
     }
 }
