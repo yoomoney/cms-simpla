@@ -1,14 +1,15 @@
 <?php
 /**
- * Version: 1.0.5
+ * Version: 1.0.6
  * License: Любое использование Вами программы означает полное и безоговорочное принятие Вами условий лицензионного договора, размещенного по адресу https://money.yandex.ru/doc.xml?id=527132 (далее – «Лицензионный договор»). Если Вы не принимаете условия Лицензионного договора в полном объёме, Вы не имеете права использовать программу в каких-либо целях.
  */
 require_once 'api/Simpla.php';
 require_once 'autoload.php';
 require_once 'YandexMoneyLogger.php';
-define(YAMONEY_MODULE_VERSION, '1.0.5');
+define(YAMONEY_MODULE_VERSION, '1.0.6');
 
 use YandexCheckout\Client;
+use YandexCheckout\Model\Payment;
 use YandexCheckout\Request\Payments\CreatePaymentRequest;
 
 class YandexMoneyApi extends Simpla
@@ -91,6 +92,7 @@ class YandexMoneyApi extends Simpla
                                            ->setAmount($amount)
                                            ->setPaymentMethodData($payment_type)
                                            ->setCapture(true)
+                                           ->setDescription($this->createDescription($order, $settings))
                                            ->setConfirmation(
                                                array(
                                                    'type'      => \YandexCheckout\Model\ConfirmationType::REDIRECT,
@@ -332,5 +334,28 @@ class YandexMoneyApi extends Simpla
         ob_end_clean();
 
         return $html;
+    }
+
+    /**
+     * @param $orderInfo
+     * @param $config
+     * @return bool|string
+     */
+    private function createDescription($orderInfo, $config)
+    {
+        $descriptionTemplate = !empty($config['yandex_description_template'])
+            ? $config['yandex_description_template']
+            : 'Оплата заказа №%id%';
+
+        $replace = array();
+        foreach ($orderInfo as $key => $value) {
+            if (is_scalar($value)) {
+                $replace['%'.$key.'%'] = $value;
+            }
+        }
+
+        $description = strtr($descriptionTemplate, $replace);
+
+        return (string)mb_substr($description, 0, Payment::MAX_LENGTH_DESCRIPTION);
     }
 }

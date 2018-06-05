@@ -25,23 +25,23 @@
 	</settings>
 	<settings>
 		<variable>yandex_show_pay_with_yandex_button</variable>
-		<name>Отображение кнопок</name>
+		<name>                                                                            </name>
 		<options>
-			<name>Назвать кнопку оплаты «Заплатить через Яндекс»</name>
+			<name>Назвать кнопку оплаты «Заплатить через Яндекс» (при выборе способа оплаты на стороне Кассы)</name>
 			<value>1</value>
 		</options>
 	</settings>
 	<settings>
 		<variable>yandex_show_installments_button</variable>
-		<name> оплаты (для режима с выбором на стороне Кассы)</name>
+		<name>                                                                                                                   </name>
 		<options>
-			<name>Добавить кнопку «Заплатить по частям» на страницу оформления заказа</name>
+			<name>Добавить кнопку «Заплатить по частям» на страницу оформления заказа (при выборе способа оплаты на стороне Кассы)</name>
 			<value>1</value>
 		</options>
 	</settings>
 	<settings>
 		<variable>yandex_api_paymenttype</variable>
-		<name>Способ оплаты (для режима с выбором на стороне магазина)</name>
+		<name>Способ оплаты (при выборе способа оплаты на стороне магазина)</name>
 		<options>
 			<name>Не задан</name>
 			<value></value>
@@ -78,6 +78,10 @@
 			<name>Заплатить по частям</name>
 			<value>installments</value>
 		</options>
+	</settings>
+	<settings>
+		<variable>yandex_description_template</variable>
+		<name>Описание платежа</name>
 	</settings>
 	<settings>
 		<variable>ya_kassa_api_send_check</variable>
