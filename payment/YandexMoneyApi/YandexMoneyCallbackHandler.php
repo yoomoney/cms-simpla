@@ -40,11 +40,10 @@ class YandexMoneyCallbackHandler
                     $this->completePayment($order, $paymentId);
                     $logger->info('Complete payment #'.$paymentId.' orderId: '.$orderId);
                 } else {
-                    $this->simplaApi->orders->close($order->id);
-                    $logger->info('Close order. OrderId: '.$orderId);
+                    $logger->info('Capture order fail. OrderId: '.$orderId);
                 }
             } elseif ($paymentInfo->status == PaymentStatus::CANCELED) {
-                $this->simplaApi->orders->close($order->id);
+                $logger->info('Cancel order. OrderId: '.$orderId);
             } elseif ($paymentInfo->status == PaymentStatus::SUCCEEDED) {
                 $this->completePayment($order, $paymentId);
                 $logger->info('Complete payment #'.$paymentId.' orderId: '.$orderId);
@@ -82,7 +81,7 @@ class YandexMoneyCallbackHandler
         $logger        = new YandexMoneyLogger($settings['ya_kassa_debug']);
         $logger->info('Notification: '.$body);
         $apiClient->setLogger($logger);
-        $paymentId     = $payment->getId();
+        $paymentId = $payment->getId();
         if (!$order) {
             $logger->error('Order not found. OrderId: '.$orderId);
             header("HTTP/1.1 404 Not Found");
@@ -105,8 +104,7 @@ class YandexMoneyCallbackHandler
                     $this->completePayment($order, $paymentId);
                     $logger->info('Complete payment #'.$paymentId.' orderId: '.$orderId);
                 } else {
-                    $this->simplaApi->orders->close($order);
-                    $logger->info('Close order. OrderId: '.$orderId);
+                    $logger->info('Capture order fail. OrderId: '.$orderId);
                 }
                 header("HTTP/1.1 200 OK");
                 header("Status: 200 OK");
@@ -117,14 +115,13 @@ class YandexMoneyCallbackHandler
                 header("Status: 400 Bad Request");
                 break;
             case PaymentStatus::SUCCEEDED:
-                $this->completePayment($order, $paymentId );
+                $this->completePayment($order, $paymentId);
                 $logger->info('Complete payment #'.$paymentId.' orderId: '.$orderId);
                 header("HTTP/1.1 200 OK");
                 header("Status: 200 OK");
                 break;
             case PaymentStatus::CANCELED:
-                $this->simplaApi->orders->close($order);
-                $logger->info('Close order. OrderId: '.$orderId);
+                $logger->info('Cancel order. OrderId: '.$orderId);
                 header("HTTP/1.1 200 OK");
                 header("Status: 200 OK");
                 break;
@@ -175,16 +172,15 @@ class YandexMoneyCallbackHandler
 
     private function completePayment($order, $paymentId)
     {
-        $comment = "Номер транзакции в Яндекс.Кассе: {$paymentId}. Сумма: {$order->total_price}";
-        $query   = $this->simplaApi->db->placehold(
-            "UPDATE s_orders SET paid=1, status=2, payment_date=NOW(),comment='{$comment}',modified=NOW() WHERE id=?",
-            intval($order->id)
-        );
-        $result  = $this->simplaApi->db->query($query);
+        $this->simplaApi->orders->pay($order->id);
+        $comment = $order->comment." Номер транзакции в Яндекс.Кассе: {$paymentId}. Сумма: {$order->total_price}";
+        $this->simplaApi->orders->update_order($order->id, array(
+            'paid'    => 1,
+            'status'  => 1,
+            'comment' => $comment,
+        ));
 
         // отправляем уведомление администратору
         $this->simplaApi->notify->email_order_admin((int)$order->id);
-
-        return $result;
     }
 }

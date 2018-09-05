@@ -1,12 +1,12 @@
 <?php
 /**
- * Version: 1.0.6
+ * Version: 1.0.7
  * License: Любое использование Вами программы означает полное и безоговорочное принятие Вами условий лицензионного договора, размещенного по адресу https://money.yandex.ru/doc.xml?id=527132 (далее – «Лицензионный договор»). Если Вы не принимаете условия Лицензионного договора в полном объёме, Вы не имеете права использовать программу в каких-либо целях.
  */
 require_once 'api/Simpla.php';
 require_once 'autoload.php';
 require_once 'YandexMoneyLogger.php';
-define(YAMONEY_MODULE_VERSION, '1.0.6');
+define(YAMONEY_MODULE_VERSION, '1.0.7');
 
 use YandexCheckout\Client;
 use YandexCheckout\Model\Payment;
