@@ -24,30 +24,25 @@
  * THE SOFTWARE.
  */
 
-namespace YandexCheckout\Model;
+namespace YandexCheckout\Model\PaymentData\B2b\Sberbank;
 
 use YandexCheckout\Common\AbstractEnum;
 
 /**
- * CurrencyCode - Код валюты, ISO-4217 3-alpha currency symbol
+ * PaymentDataB2bSberbankVatDataType - Способ расчёта НДС
+ * |Код|Описание|
+ * --- | ---
+ * |calculated|Сумма НДС включена в сумму платежа|
+ * |untaxed|Сумма платежа НДС не облагается|
  */
-class CurrencyCode extends AbstractEnum
+class VatDataType extends AbstractEnum
 {
-    const RUB = 'RUB';
-    const USD = 'USD';
-    const EUR = 'EUR';
-    const BYN = 'BYN';
-    const CNY = 'CNY';
-    const KZT = 'KZT';
-    const UAH = 'UAH';
+    const CALCULATED = 'calculated';
+    const UNTAXED    = 'untaxed';
 
     protected static $validValues = array(
-        self::RUB => true,
-        self::USD => true,
-        self::EUR => true,
-        self::BYN => true,
-        self::CNY => true,
-        self::KZT => true,
-        self::UAH => true,
+        self::CALCULATED => true,
+        self::UNTAXED    => true,
     );
+
 }

@@ -26,28 +26,26 @@
 
 namespace YandexCheckout\Model;
 
-use YandexCheckout\Common\AbstractEnum;
-
 /**
- * CurrencyCode - Код валюты, ISO-4217 3-alpha currency symbol
+ * Interface AuthorizationDetailsInterface - Данные об авторизации платежа
+ *
+ * @package YandexCheckout\Model
+ *
+ * @property-read string $rrn Retrieval Reference Number — уникальный идентификатор транзакции в системе эмитента
+ * @property-read string $authCode Код авторизации банковской карты
  */
-class CurrencyCode extends AbstractEnum
+interface AuthorizationDetailsInterface
 {
-    const RUB = 'RUB';
-    const USD = 'USD';
-    const EUR = 'EUR';
-    const BYN = 'BYN';
-    const CNY = 'CNY';
-    const KZT = 'KZT';
-    const UAH = 'UAH';
+    /**
+     * Возвращает Retrieval Reference Number — уникальный идентификатор транзакции в системе эмитента
+     * @return string|null Уникальный идентификатор транзакции
+     */
+    function getRrn();
 
-    protected static $validValues = array(
-        self::RUB => true,
-        self::USD => true,
-        self::EUR => true,
-        self::BYN => true,
-        self::CNY => true,
-        self::KZT => true,
-        self::UAH => true,
-    );
+    /**
+     * Возвращает код авторизации банковской карты
+     * @return string|null Код авторизации банковской карты
+     */
+    function getAuthCode();
+
 }

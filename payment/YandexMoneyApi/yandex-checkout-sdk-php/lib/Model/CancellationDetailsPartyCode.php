@@ -29,25 +29,29 @@ namespace YandexCheckout\Model;
 use YandexCheckout\Common\AbstractEnum;
 
 /**
- * CurrencyCode - Код валюты, ISO-4217 3-alpha currency symbol
+ * CancellationDetailsPartyCode - Возможные инициаторы отмены платежа
  */
-class CurrencyCode extends AbstractEnum
+class CancellationDetailsPartyCode extends AbstractEnum
 {
-    const RUB = 'RUB';
-    const USD = 'USD';
-    const EUR = 'EUR';
-    const BYN = 'BYN';
-    const CNY = 'CNY';
-    const KZT = 'KZT';
-    const UAH = 'UAH';
+    /**
+     * Продавец товаров и услуг
+     */
+    const MERCHANT = 'merchant';
+
+    /**
+     * Яндекс.Касса
+     */
+    const YANDEX_CHECKOUT = 'yandex_checkout';
+
+    /**
+     * «Внешние» участники платежного процесса (например, эмитент, сторонний платежный сервис)
+     */
+    const PAYMENT_NETWORK = 'payment_network';
+
 
     protected static $validValues = array(
-        self::RUB => true,
-        self::USD => true,
-        self::EUR => true,
-        self::BYN => true,
-        self::CNY => true,
-        self::KZT => true,
-        self::UAH => true,
+        self::MERCHANT        => true,
+        self::YANDEX_CHECKOUT => true,
+        self::PAYMENT_NETWORK => true,
     );
 }

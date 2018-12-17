@@ -24,30 +24,28 @@
  * THE SOFTWARE.
  */
 
-namespace YandexCheckout\Model;
+namespace YandexCheckout\Model\PaymentData\B2b\Sberbank;
 
 use YandexCheckout\Common\AbstractEnum;
 
 /**
- * CurrencyCode - Код валюты, ISO-4217 3-alpha currency symbol
+ * PaymentDataB2bSberbankVatDataRate - Налоговая ставка НДС
+ * |Код|Описание|
+ * --- | ---
+ * |7|7%|
+ * |10|10%|
+ * |18|18%|
  */
-class CurrencyCode extends AbstractEnum
+class VatDataRate extends AbstractEnum
 {
-    const RUB = 'RUB';
-    const USD = 'USD';
-    const EUR = 'EUR';
-    const BYN = 'BYN';
-    const CNY = 'CNY';
-    const KZT = 'KZT';
-    const UAH = 'UAH';
+    const RATE_7  = '7';
+    const RATE_10 = '10';
+    const RATE_18 = '18';
 
     protected static $validValues = array(
-        self::RUB => true,
-        self::USD => true,
-        self::EUR => true,
-        self::BYN => true,
-        self::CNY => true,
-        self::KZT => true,
-        self::UAH => true,
+        self::RATE_7  => true,
+        self::RATE_10 => true,
+        self::RATE_18 => true,
     );
+
 }

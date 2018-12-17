@@ -24,30 +24,19 @@
  * THE SOFTWARE.
  */
 
-namespace YandexCheckout\Model;
+namespace YandexCheckout\Model\PaymentMethod;
 
-use YandexCheckout\Common\AbstractEnum;
+use YandexCheckout\Model\PaymentMethodType;
 
 /**
- * CurrencyCode - Код валюты, ISO-4217 3-alpha currency symbol
+ * PaymentMethodGooglePay
+ * Объект, описывающий метод оплаты, при оплате через Google Pay
+ * @property string $type Тип объекта
  */
-class CurrencyCode extends AbstractEnum
+class PaymentMethodGooglePay extends AbstractPaymentMethod
 {
-    const RUB = 'RUB';
-    const USD = 'USD';
-    const EUR = 'EUR';
-    const BYN = 'BYN';
-    const CNY = 'CNY';
-    const KZT = 'KZT';
-    const UAH = 'UAH';
-
-    protected static $validValues = array(
-        self::RUB => true,
-        self::USD => true,
-        self::EUR => true,
-        self::BYN => true,
-        self::CNY => true,
-        self::KZT => true,
-        self::UAH => true,
-    );
+    public function __construct()
+    {
+        $this->_setType(PaymentMethodType::GOOGLE_PAY);
+    }
 }

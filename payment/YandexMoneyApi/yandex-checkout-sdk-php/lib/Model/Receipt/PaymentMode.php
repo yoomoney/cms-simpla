@@ -1,5 +1,4 @@
 <?php
-
 /**
  * The MIT License
  *
@@ -24,30 +23,28 @@
  * THE SOFTWARE.
  */
 
-namespace YandexCheckout\Model;
+namespace YandexCheckout\Model\Receipt;
+
 
 use YandexCheckout\Common\AbstractEnum;
 
-/**
- * CurrencyCode - Код валюты, ISO-4217 3-alpha currency symbol
- */
-class CurrencyCode extends AbstractEnum
+class PaymentMode extends AbstractEnum
 {
-    const RUB = 'RUB';
-    const USD = 'USD';
-    const EUR = 'EUR';
-    const BYN = 'BYN';
-    const CNY = 'CNY';
-    const KZT = 'KZT';
-    const UAH = 'UAH';
+    const FULL_PREPAYMENT = 'full_prepayment';
+    const PARTIAL_PREPAYMENT = 'partial_prepayment';
+    const ADVANCE = 'advance';
+    const FULL_PAYMENT = 'full_payment';
+    const PARTIAL_PAYMENT = 'partial_payment';
+    const CREDIT = 'credit';
+    const CREDIT_PAYMENT = 'credit_payment';
 
     protected static $validValues = array(
-        self::RUB => true,
-        self::USD => true,
-        self::EUR => true,
-        self::BYN => true,
-        self::CNY => true,
-        self::KZT => true,
-        self::UAH => true,
+        self::FULL_PREPAYMENT    => true,
+        self::PARTIAL_PREPAYMENT => true,
+        self::ADVANCE            => true,
+        self::FULL_PAYMENT       => true,
+        self::PARTIAL_PAYMENT    => true,
+        self::CREDIT             => true,
+        self::CREDIT_PAYMENT     => true,
     );
 }
