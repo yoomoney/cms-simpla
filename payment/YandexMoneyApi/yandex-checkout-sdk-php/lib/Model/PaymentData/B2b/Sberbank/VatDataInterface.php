@@ -24,30 +24,37 @@
  * THE SOFTWARE.
  */
 
-namespace YandexCheckout\Model;
+namespace YandexCheckout\Model\PaymentData\B2b\Sberbank;
 
-use YandexCheckout\Common\AbstractEnum;
+use YandexCheckout\Model\AmountInterface;
 
 /**
- * CurrencyCode - Код валюты, ISO-4217 3-alpha currency symbol
+ * Interface VatDataInterface
+ *
+ * @package YandexCheckout\Model
+ *
+ * @property-read string $type Способ расчёта НДС
+ * @property-read string $rate Данные об НДС в случае, если сумма НДС включена в сумму платежа
+ * @property-read AmountInterface $amount Сумма НДС
  */
-class CurrencyCode extends AbstractEnum
+interface VatDataInterface
 {
-    const RUB = 'RUB';
-    const USD = 'USD';
-    const EUR = 'EUR';
-    const BYN = 'BYN';
-    const CNY = 'CNY';
-    const KZT = 'KZT';
-    const UAH = 'UAH';
+    /**
+     * Возвращает способ расчёта НДС
+     * @return string Способ расчёта НДС
+     */
+    function getType();
 
-    protected static $validValues = array(
-        self::RUB => true,
-        self::USD => true,
-        self::EUR => true,
-        self::BYN => true,
-        self::CNY => true,
-        self::KZT => true,
-        self::UAH => true,
-    );
+    /**
+     * Возвращает данные об НДС
+     * @return string Данные об НДС
+     */
+    function getRate();
+
+    /**
+     * Возвращает сумму НДС
+     * @return AmountInterface Сумма НДС
+     */
+    function getAmount();
 }
+

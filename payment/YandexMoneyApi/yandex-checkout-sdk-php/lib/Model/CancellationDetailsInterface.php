@@ -26,28 +26,26 @@
 
 namespace YandexCheckout\Model;
 
-use YandexCheckout\Common\AbstractEnum;
-
 /**
- * CurrencyCode - Код валюты, ISO-4217 3-alpha currency symbol
+ * Interface CancellationDetailsInterface
+ *
+ * @package YandexCheckout\Model
+ *
+ * @property-read string $party Участник процесса платежа, который принял решение об отмене транзакции.
+ * @property-read string $reason Причина отмены платежа.
  */
-class CurrencyCode extends AbstractEnum
+interface CancellationDetailsInterface
 {
-    const RUB = 'RUB';
-    const USD = 'USD';
-    const EUR = 'EUR';
-    const BYN = 'BYN';
-    const CNY = 'CNY';
-    const KZT = 'KZT';
-    const UAH = 'UAH';
+    /**
+     * Возвращает участника процесса платежа, который принял решение об отмене транзакции
+     * @return string Участник процесса платежа
+     */
+    function getParty();
 
-    protected static $validValues = array(
-        self::RUB => true,
-        self::USD => true,
-        self::EUR => true,
-        self::BYN => true,
-        self::CNY => true,
-        self::KZT => true,
-        self::UAH => true,
-    );
+    /**
+     * Возвращает причину отмены платежа
+     * @return string Причина отмены платежа
+     */
+    function getReason();
+
 }

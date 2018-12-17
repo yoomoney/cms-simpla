@@ -1,12 +1,12 @@
 <?php
 /**
- * Version: 1.0.7
+ * Version: 1.0.8
  * License: Любое использование Вами программы означает полное и безоговорочное принятие Вами условий лицензионного договора, размещенного по адресу https://money.yandex.ru/doc.xml?id=527132 (далее – «Лицензионный договор»). Если Вы не принимаете условия Лицензионного договора в полном объёме, Вы не имеете права использовать программу в каких-либо целях.
  */
 require_once 'api/Simpla.php';
 require_once 'autoload.php';
 require_once 'YandexMoneyLogger.php';
-define(YAMONEY_MODULE_VERSION, '1.0.7');
+define(YAMONEY_MODULE_VERSION, '1.0.8');
 
 use YandexCheckout\Client;
 use YandexCheckout\Model\Payment;
@@ -21,6 +21,7 @@ class YandexMoneyApi extends Simpla
     /**
      * @param int|mixed $order_id
      * @param string|null $button_text
+     *
      * @throws Exception
      * @throws \YandexCheckout\Common\Exceptions\ApiException
      * @throws Exception
@@ -48,9 +49,10 @@ class YandexMoneyApi extends Simpla
         $payment_type     = ($payment_sitemode) ? $settings['yandex_api_paymenttype'] : '';
 
         if (($payment_type == \YandexCheckout\Model\PaymentMethodType::INSTALLMENTS)
-            && ($amount < self::INSTALLMENTS_MIN_AMOUNT)) {
+            && ($amount < self::INSTALLMENTS_MIN_AMOUNT)
+        ) {
             return '<span style="color:#ec0060;">Заплатить этим способом не получится: сумма должна быть больше '
-                . self::INSTALLMENTS_MIN_AMOUNT . ' рублей.</span>';
+                   .self::INSTALLMENTS_MIN_AMOUNT.' рублей.</span>';
         }
 
         if ($payment_type == \YandexCheckout\Model\PaymentMethodType::ALFABANK) {
@@ -112,14 +114,17 @@ class YandexMoneyApi extends Simpla
                 $builder->setReceiptEmail($order->email);
 
                 $id_tax = (isset($settings['ya_kassa_api_tax']) && $settings['ya_kassa_api_tax'] ? $settings['ya_kassa_api_tax'] : self::DEFAULT_TAX_RATE_ID);
-
                 foreach ($purchases as $purchase) {
-                    $builder->addReceiptItem($purchase->product_name, $purchase->price, $purchase->amount, $id_tax);
+                    $properties     = $this->features->get_product_options($purchase->product_id);
+                    $paymentMode    = $this->getPaymenMode($properties, $settings);
+                    $paymentSubject = $this->getPaymenSubject($properties, $settings);
+                    $builder->addReceiptItem($purchase->product_name, $purchase->price, $purchase->amount, $id_tax,
+                        $paymentMode, $paymentSubject);
                 }
-
                 if ($order->delivery_id && $order->delivery_price > 0) {
                     $delivery = $this->delivery->get_delivery($order->delivery_id);
-                    $builder->addReceiptShipping($delivery->name, $order->delivery_price, $id_tax);
+                    $builder->addReceiptShipping($delivery->name, $order->delivery_price, $id_tax,
+                        $settings['ya_kassa_api_payment_mode'], $settings['ya_kassa_api_payment_subject']);
                 }
             }
 
@@ -197,6 +202,7 @@ class YandexMoneyApi extends Simpla
      * @param string $button_text
      * @param array $settings
      * @param float $amount
+     *
      * @return string
      */
     private function getForm($button_text, $settings, $amount)
@@ -265,12 +271,12 @@ class YandexMoneyApi extends Simpla
             <input type="hidden" name="payment_submit"/>
             <input type="hidden" name="payment_type" id="pm_yandex_money_payment_type" value=""/>
             <?php
-            $onKassaSide = $settings['yandex_api_paymode'] === 'kassa';
-            $showInstallmentsButton = false;
+            $onKassaSide             = $settings['yandex_api_paymode'] === 'kassa';
+            $showInstallmentsButton  = false;
             $showPayWithYandexButton = false;
 
             if ($onKassaSide) {
-                $showInstallmentsButton = $settings['yandex_show_installments_button'];
+                $showInstallmentsButton  = $settings['yandex_show_installments_button'];
                 $showPayWithYandexButton = $settings['yandex_show_pay_with_yandex_button'];
                 if ($showInstallmentsButton || $showPayWithYandexButton) {
                     ?>
@@ -339,6 +345,7 @@ class YandexMoneyApi extends Simpla
     /**
      * @param $orderInfo
      * @param $config
+     *
      * @return bool|string
      */
     private function createDescription($orderInfo, $config)
@@ -357,5 +364,30 @@ class YandexMoneyApi extends Simpla
         $description = strtr($descriptionTemplate, $replace);
 
         return (string)mb_substr($description, 0, Payment::MAX_LENGTH_DESCRIPTION);
+    }
+
+    /**
+     * @param $properties
+     */
+    private function getPaymenMode($properties, $settings)
+    {
+        foreach ($properties as $property) {
+            if ($property->name == 'payment_mode') {
+                return $property->value;
+            }
+        }
+
+        return $settings['ya_kassa_api_payment_mode'];
+    }
+
+    private function getPaymenSubject($properties, $settings)
+    {
+        foreach ($properties as $property) {
+            if ($property->name == 'payment_subject') {
+                return $property->value;
+            }
+        }
+
+        return $settings['ya_kassa_api_payment_subject'];
     }
 }
