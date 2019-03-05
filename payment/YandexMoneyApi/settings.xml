@@ -79,6 +79,10 @@
             <value>qiwi</value>
         </options>
         <options>
+            <name>Интернет-банк Тинькофф</name>
+            <value>tinkoff_bank</value>
+        </options>
+        <options>
             <name>Заплатить по частям</name>
             <value>installments</value>
         </options>
