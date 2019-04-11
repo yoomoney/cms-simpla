@@ -1,5 +1,4 @@
 <?php
-
 /**
  * The MIT License
  *
@@ -23,30 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 namespace YandexCheckout\Model\PaymentMethod;
 
-use YandexCheckout\Common\AbstractEnum;
 
-class PaymentMethodCardType extends AbstractEnum
+use YandexCheckout\Model\PaymentMethodType;
+
+class PaymentMethodTinkoffBank extends AbstractPaymentMethod
 {
-    const MASTER_CARD = 'MasterCard';
-    const VISA = 'Visa';
-    const MIR = 'MIR';
-    const UNION_PAY = 'UnionPay';
-    const JCB = 'JCB';
-    const AMERICAN_EXPRESS = 'AmericanExpress';
-    const UNKNOWN = 'Unknown';
-    const DINERS_CLUB = 'DinersClub';
-
-    protected static $validValues = array(
-        self::MASTER_CARD      => true,
-        self::VISA             => true,
-        self::MIR              => true,
-        self::UNION_PAY        => true,
-        self::JCB              => true,
-        self::AMERICAN_EXPRESS => true,
-        self::UNKNOWN          => true,
-        self::DINERS_CLUB      => true,
-    );
+    public function __construct()
+    {
+        $this->_setType(PaymentMethodType::TINKOFF_BANK);
+    }
 }

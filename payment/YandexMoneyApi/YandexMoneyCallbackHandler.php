@@ -176,7 +176,7 @@ class YandexMoneyCallbackHandler
         $comment = $order->comment." Номер транзакции в Яндекс.Кассе: {$paymentId}. Сумма: {$order->total_price}";
         $this->simplaApi->orders->update_order($order->id, array(
             'paid'    => 1,
-            'status'  => 1,
+            'status'  => 2,
             'comment' => $comment,
         ));
 

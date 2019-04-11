@@ -183,13 +183,13 @@ abstract class AbstractPaymentRequestBuilder extends AbstractRequestBuilder
      * @param float $quantity Количество товара
      * @param int $vatCode Ставка НДС
      *
-     * @param null $paymentSubject значение перечисления PaymentSubject
+     * @param null|string $paymentSubject значение перечисления PaymentSubject
      * @see \YandexCheckout\Model\Receipt\PaymentSubject::class
      *
-     * @param null $paymentMode значение перечисления PaymentMode
+     * @param null|string $paymentMode значение перечисления PaymentMode
      * @see \YandexCheckout\Model\Receipt\PaymentMode::class
      *
-     * @return AbstractPaymentRequestBuilder Инстанс билдера запросов
+     * @return self Инстанс билдера запросов
      */
     public function addReceiptItem($title, $price, $quantity, $vatCode, $paymentMode = null, $paymentSubject = null)
     {
@@ -212,10 +212,10 @@ abstract class AbstractPaymentRequestBuilder extends AbstractRequestBuilder
      * @param string $price Стоимость доставки
      * @param int $vatCode Ставка НДС
      *
-     * @param null $paymentSubject значение перечисления PaymentSubject
+     * @param null|string $paymentSubject значение перечисления PaymentSubject
      * @see \YandexCheckout\Model\Receipt\PaymentSubject::class
      *
-     * @param null $paymentMode значение перечисления PaymentMode
+     * @param null|string $paymentMode значение перечисления PaymentMode
      * @see \YandexCheckout\Model\Receipt\PaymentMode::class
      *
      * @return self Инстанс билдера запросов
