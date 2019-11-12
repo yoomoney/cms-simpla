@@ -70,7 +70,7 @@ class KassaSecondReceiptModel
         if (!$this->isPaymentInfoValid($this->paymentInfo)) {
             $this->log("error", "Invalid paymentInfo");
             return false;
-        } elseif (empty($this->orderInfo['user_email']) || empty($this->orderInfo['user_phone'])) {
+        } elseif (empty($this->orderInfo['user_email']) && empty($this->orderInfo['user_phone'])) {
             $this->log("error", "Invalid orderInfo orderId = " . $this->orderInfo['order_id']);
             return false;
         }
