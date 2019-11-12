@@ -1,5 +1,6 @@
 <?php
 
+namespace YandexMoneyModule;
 
 class YandexMoneyLogger
 {

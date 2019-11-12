@@ -224,6 +224,38 @@
         </options>
     </settings>
     <settings>
+        <variable>ya_kassa_api_send_second_receipt</variable>
+        <name>Второй чек:</name>
+        <options>
+            <name>Включить</name>
+            <value>1</value>
+        </options>
+        <options>
+            <name>Выключить</name>
+            <value>0</value>
+        </options>
+    </settings>
+    <settings>
+        <variable>ya_kassa_api_second_receipt_status</variable>
+        <name>Формировать второй чек при переходе заказа в статус</name>
+        <options>
+            <name>Новый</name>
+            <value>0</value>
+        </options>
+        <options>
+            <name>Принят</name>
+            <value>1</value>
+        </options>
+        <options>
+            <name>Выполнен</name>
+            <value>2</value>
+        </options>
+        <options>
+            <name>Удален</name>
+            <value>3</value>
+        </options>
+    </settings>
+    <settings>
         <variable>ya_kassa_debug</variable>
         <name>Запись отладочной информации</name>
         <options>

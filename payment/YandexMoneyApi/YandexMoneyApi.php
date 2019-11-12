@@ -1,16 +1,17 @@
 <?php
 /**
- * Version: 1.0.10
+ * Version: 1.1.0
  * License: Любое использование Вами программы означает полное и безоговорочное принятие Вами условий лицензионного договора, размещенного по адресу https://money.yandex.ru/doc.xml?id=527132 (далее – «Лицензионный договор»). Если Вы не принимаете условия Лицензионного договора в полном объёме, Вы не имеете права использовать программу в каких-либо целях.
  */
+
 require_once 'api/Simpla.php';
 require_once 'autoload.php';
-require_once 'YandexMoneyLogger.php';
-define(YAMONEY_MODULE_VERSION, '1.0.10');
+define(YAMONEY_MODULE_VERSION, '1.1.0');
 
 use YandexCheckout\Client;
 use YandexCheckout\Model\Payment;
 use YandexCheckout\Request\Payments\CreatePaymentRequest;
+use YandexMoneyModule\YandexMoneyLogger;
 
 class YandexMoneyApi extends Simpla
 {
@@ -87,9 +88,8 @@ class YandexMoneyApi extends Simpla
             if (!empty($_POST['payment_type'])) {
                 $payment_type = $_POST['payment_type'];
             }
-            $apiClient = new Client();
-            $apiClient->setAuth($settings['yandex_api_shopid'], $settings['yandex_api_password']);
-            $apiClient->setLogger(new YandexMoneyLogger($settings['ya_kassa_debug']));
+            $apiClient = $this->getApiClient($settings['yandex_api_shopid'], $settings['yandex_api_password'], $settings['ya_kassa_debug']);
+
             $builder = CreatePaymentRequest::builder()
                                            ->setAmount($amount)
                                            ->setPaymentMethodData($payment_type)
@@ -116,8 +116,8 @@ class YandexMoneyApi extends Simpla
                 $id_tax = (isset($settings['ya_kassa_api_tax']) && $settings['ya_kassa_api_tax'] ? $settings['ya_kassa_api_tax'] : self::DEFAULT_TAX_RATE_ID);
                 foreach ($purchases as $purchase) {
                     $properties     = $this->features->get_product_options($purchase->product_id);
-                    $paymentMode    = $this->getPaymenMode($properties, $settings);
-                    $paymentSubject = $this->getPaymenSubject($properties, $settings);
+                    $paymentMode    = $this->getPaymentMode($properties, $settings);
+                    $paymentSubject = $this->getPaymentSubject($properties, $settings);
                     $builder->addReceiptItem($purchase->product_name, $purchase->price, $purchase->amount, $id_tax,
                         $paymentMode, $paymentSubject);
                 }
@@ -343,6 +343,25 @@ class YandexMoneyApi extends Simpla
     }
 
     /**
+     * @param $shopId
+     * @param $shopPassword
+     * @param $logger
+     *
+     * @return Client
+     */
+    public function getApiClient($shopId, $shopPassword, $logger)
+    {
+        $apiClient = new Client();
+        $apiClient->setAuth($shopId, $shopPassword);
+        $apiClient->setLogger(new YandexMoneyLogger($logger));
+        $userAgent = $apiClient->getApiClient()->getUserAgent();
+        $userAgent->setCms('Simpla', $this->config->version);
+        $userAgent->setModule('yandexmoney-simplacms', YAMONEY_MODULE_VERSION);
+
+        return $apiClient;
+    }
+
+    /**
      * @param $orderInfo
      * @param $config
      *
@@ -368,8 +387,10 @@ class YandexMoneyApi extends Simpla
 
     /**
      * @param $properties
+     * @param $settings
+     * @return mixed
      */
-    private function getPaymenMode($properties, $settings)
+    private function getPaymentMode($properties, $settings)
     {
         foreach ($properties as $property) {
             if ($property->name == 'payment_mode') {
@@ -380,7 +401,12 @@ class YandexMoneyApi extends Simpla
         return $settings['ya_kassa_api_payment_mode'];
     }
 
-    private function getPaymenSubject($properties, $settings)
+    /**
+     * @param $properties
+     * @param $settings
+     * @return mixed
+     */
+    private function getPaymentSubject($properties, $settings)
     {
         foreach ($properties as $property) {
             if ($property->name == 'payment_subject') {
