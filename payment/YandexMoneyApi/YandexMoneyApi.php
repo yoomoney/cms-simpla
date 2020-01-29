@@ -6,7 +6,7 @@
 
 require_once 'api/Simpla.php';
 require_once 'autoload.php';
-define(YAMONEY_MODULE_VERSION, '1.1.0');
+define('YAMONEY_MODULE_VERSION', '1.1.1');
 
 use YandexCheckout\Client;
 use YandexCheckout\Model\Payment;
