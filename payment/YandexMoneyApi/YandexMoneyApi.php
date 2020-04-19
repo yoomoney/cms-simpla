@@ -113,12 +113,14 @@ class YandexMoneyApi extends Simpla
 
                 $builder->setReceiptEmail($order->email);
 
+		$discount_percent = $order->discount > 0 ? (100 - $order->discount) / 100 : 1;
+		// TODO $order->coupon_discount
                 $id_tax = (isset($settings['ya_kassa_api_tax']) && $settings['ya_kassa_api_tax'] ? $settings['ya_kassa_api_tax'] : self::DEFAULT_TAX_RATE_ID);
                 foreach ($purchases as $purchase) {
                     $properties     = $this->features->get_product_options($purchase->product_id);
                     $paymentMode    = $this->getPaymentMode($properties, $settings);
                     $paymentSubject = $this->getPaymentSubject($properties, $settings);
-                    $builder->addReceiptItem($purchase->product_name, $purchase->price, $purchase->amount, $id_tax,
+                    $builder->addReceiptItem($purchase->product_name, $purchase->price * $discount_percent, $purchase->amount, $id_tax,
                         $paymentMode, $paymentSubject);
                 }
                 if ($order->delivery_id && $order->delivery_price > 0) {
