@@ -112,7 +112,11 @@ class YandexMoneyApi extends Simpla
                 $purchases = $this->orders->get_purchases(array('order_id' => intval($order->id)));
 
                 $builder->setReceiptEmail($order->email);
-
+		    
+                if(!empty($order->phone)) {
+                    $builder->setReceiptPhone($order->phone);
+                }
+		    
                 $id_tax = (isset($settings['ya_kassa_api_tax']) && $settings['ya_kassa_api_tax'] ? $settings['ya_kassa_api_tax'] : self::DEFAULT_TAX_RATE_ID);
                 foreach ($purchases as $purchase) {
                     $properties     = $this->features->get_product_options($purchase->product_id);
