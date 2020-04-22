@@ -121,7 +121,7 @@ class YandexMoneyApi extends Simpla
                     $builder->addReceiptItem($purchase->product_name, $purchase->price, $purchase->amount, $id_tax,
                         $paymentMode, $paymentSubject);
                 }
-                if ($order->delivery_id && $order->delivery_price > 0) {
+                if ($order->delivery_id && !$order->separate_delivery && $order->delivery_price > 0) {
                     $delivery = $this->delivery->get_delivery($order->delivery_id);
                     $builder->addReceiptShipping($delivery->name, $order->delivery_price, $id_tax,
                         $settings['ya_kassa_api_payment_mode'], $settings['ya_kassa_api_payment_subject']);
