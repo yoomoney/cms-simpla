@@ -24,32 +24,45 @@
  * THE SOFTWARE.
  */
 
-namespace YandexCheckout\Model\PaymentMethod;
-
-use YandexCheckout\Common\AbstractEnum;
+namespace YandexCheckout\Model;
 
 /**
- * @deprecated Класс будет удалён в одной из будущих версий.
+ * Interface SupplierInterface
+ *
+ * Информация о поставщике товара или услуги. Можно передавать,
+ * если вы отправляете данные для формирования чека по сценарию - сначала платеж, потом чек.
+ *
+ * @package YandexCheckout\Model
  */
-class PaymentMethodCardType extends AbstractEnum
+interface SupplierInterface
 {
-    const MASTER_CARD = 'MasterCard';
-    const VISA = 'Visa';
-    const MIR = 'MIR';
-    const UNION_PAY = 'UnionPay';
-    const JCB = 'JCB';
-    const AMERICAN_EXPRESS = 'AmericanExpress';
-    const UNKNOWN = 'Unknown';
-    const DINERS_CLUB = 'DinersClub';
+    /**
+     * @return string|null
+     */
+    public function getName();
 
-    protected static $validValues = array(
-        self::MASTER_CARD      => true,
-        self::VISA             => true,
-        self::MIR              => true,
-        self::UNION_PAY        => true,
-        self::JCB              => true,
-        self::AMERICAN_EXPRESS => true,
-        self::UNKNOWN          => true,
-        self::DINERS_CLUB      => true,
-    );
+    /**
+     * @param string|null $value
+     */
+    public function setName($value);
+
+    /**
+     * @return string|null
+     */
+    public function getPhone();
+
+    /**
+     * @param $value
+     */
+    public function setPhone($value);
+
+    /**
+     * @return string|null
+     */
+    public function getInn();
+
+    /**
+     * @param $value
+     */
+    public function setInn($value);
 }

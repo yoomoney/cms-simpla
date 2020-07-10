@@ -24,32 +24,32 @@
  * THE SOFTWARE.
  */
 
-namespace YandexCheckout\Model\PaymentMethod;
+namespace YandexCheckout\Model;
+
 
 use YandexCheckout\Common\AbstractEnum;
 
 /**
- * @deprecated Класс будет удалён в одной из будущих версий.
+ * PaymentStatus - Статус операции распределения средств конечному получателю
+ * |Код|Описание|
+ * --- | ---
+ * |pending|Ожидает оплаты покупателем|
+ * |waiting_for_capture|Успешно оплачен покупателем, ожидает подтверждения магазином (capture или aviso)|
+ * |succeeded|Успешно оплачен и получен магазином|
+ * |canceled|Неуспех оплаты или отменен магазином (cancel)|
+ *
  */
-class PaymentMethodCardType extends AbstractEnum
+class TransferStatus extends AbstractEnum
 {
-    const MASTER_CARD = 'MasterCard';
-    const VISA = 'Visa';
-    const MIR = 'MIR';
-    const UNION_PAY = 'UnionPay';
-    const JCB = 'JCB';
-    const AMERICAN_EXPRESS = 'AmericanExpress';
-    const UNKNOWN = 'Unknown';
-    const DINERS_CLUB = 'DinersClub';
+    const PENDING = 'pending';
+    const WAITING_FOR_CAPTURE = 'waiting_for_capture';
+    const SUCCEEDED = 'succeeded';
+    const CANCELED = 'canceled';
 
     protected static $validValues = array(
-        self::MASTER_CARD      => true,
-        self::VISA             => true,
-        self::MIR              => true,
-        self::UNION_PAY        => true,
-        self::JCB              => true,
-        self::AMERICAN_EXPRESS => true,
-        self::UNKNOWN          => true,
-        self::DINERS_CLUB      => true,
+        self::PENDING => true,
+        self::WAITING_FOR_CAPTURE => true,
+        self::SUCCEEDED => true,
+        self::CANCELED => true,
     );
 }
