@@ -54,7 +54,7 @@ class PaymentsResponse
     /**
      * @var string|null Токен следующей страницы
      */
-    private $nextPage;
+    private $nextCursor;
 
     /**
      * Конструктор, устанавливает свойства объекта из пришедшего из API ассоциативного массива
@@ -76,7 +76,10 @@ class PaymentsResponse
                 $payment->setDescription($paymentInfo['description']);
             }
             $payment->setCreatedAt(strtotime($paymentInfo['created_at']));
-            $payment->setPaymentMethod($this->factoryPaymentMethod($paymentInfo['payment_method']));
+            if (!empty($paymentInfo['payment_method'])
+                && $method = $this->factoryPaymentMethod($paymentInfo['payment_method'])) {
+                $payment->setPaymentMethod($method);
+            }
             $payment->setPaid($paymentInfo['paid']);
             $payment->setRefundable($paymentInfo['refundable']);
 
@@ -93,8 +96,12 @@ class PaymentsResponse
                 if ($paymentInfo['confirmation']['type'] === ConfirmationType::REDIRECT) {
                     $confirmation = new ConfirmationRedirect();
                     $confirmation->setConfirmationUrl($paymentInfo['confirmation']['confirmation_url']);
-                    $confirmation->setEnforce($paymentInfo['confirmation']['enforce']);
-                    $confirmation->setReturnUrl($paymentInfo['confirmation']['return_url']);
+                    if (!empty($paymentInfo['confirmation']['enforce'])) {
+                        $confirmation->setEnforce($paymentInfo['confirmation']['enforce']);
+                    }
+                    if (!empty($paymentInfo['confirmation']['return_url'])) {
+                        $confirmation->setReturnUrl($paymentInfo['confirmation']['return_url']);
+                    }
                 } else {
                     $confirmation = new ConfirmationExternal();
                 }
@@ -129,8 +136,8 @@ class PaymentsResponse
             }
             $this->items[] = $payment;
         }
-        if (!empty($options['next_page'])) {
-            $this->nextPage = $options['next_page'];
+        if (!empty($options['next_cursor'])) {
+            $this->nextCursor = $options['next_cursor'];
         }
     }
 
@@ -147,18 +154,36 @@ class PaymentsResponse
      * Возвращает токен следующей страницы, если он задан, или null
      * @return string|null Токен следующей страницы
      */
-    public function getNextPage()
+    public function getNextCursor()
     {
-        return $this->nextPage;
+        return $this->nextCursor;
     }
 
     /**
      * Проверяет имееотся ли в ответе токен следующей страницы
      * @return bool True если токен следующей страницы есть, false если нет
      */
+    public function hasNextCursor()
+    {
+        return $this->nextCursor !== null;
+    }
+
+    /**
+     * @deprecated Будет удален в следующих версиях
+     * @return string|null
+     */
+    public function getNextPage()
+    {
+        return $this->nextCursor;
+    }
+
+    /**
+     * @deprecated Будет удален в следующих версиях
+     * @return bool
+     */
     public function hasNextPage()
     {
-        return $this->nextPage !== null;
+        return $this->nextCursor !== null;
     }
 
     /**
@@ -170,6 +195,8 @@ class PaymentsResponse
      */
     private function factoryPaymentMethod($options)
     {
+        if (empty($options)) return null;
+
         $factory = new PaymentMethodFactory();
 
         return $factory->factoryFromArray($options);
