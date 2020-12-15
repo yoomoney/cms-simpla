@@ -24,14 +24,6 @@
         </options>
     </settings>
     <settings>
-        <variable>yoomoney_show_pay_with_yoomoney_button</variable>
-        <name>                                                                           </name>
-        <options>
-            <name>Назвать кнопку оплаты «Заплатить через Яндекс» (при выборе способа оплаты на стороне ЮKassa)</name>
-            <value>1</value>
-        </options>
-    </settings>
-    <settings>
         <variable>yoomoney_show_installments_button</variable>
         <name>                                                                                                         
                    
