@@ -1,12 +1,12 @@
 <?php
 /**
- * Version: 2.0.0
+ * Version: 2.0.1
  * License: Любое использование Вами программы означает полное и безоговорочное принятие Вами условий лицензионного договора, размещенного по адресу https://yoomoney.ru/doc.xml?id=527132 (далее – «Лицензионный договор»). Если Вы не принимаете условия Лицензионного договора в полном объёме, Вы не имеете права использовать программу в каких-либо целях.
  */
 
 require_once 'api/Simpla.php';
 require_once 'autoload.php';
-define('YOOMONEY_MODULE_VERSION', '2.0.0');
+define('YOOMONEY_MODULE_VERSION', '2.0.1');
 
 use YooKassa\Client;
 use YooKassa\Model\Payment;
@@ -284,21 +284,21 @@ class YooMoneyApi extends Simpla
         <?php
         if ($onKassaSide && $showInstallmentsButton) {
             ?>
-            <script src="https://static.yandex.net/kassa/pay-in-parts/ui/v1/"></script>
+            <script src="https://static.yoomoney.ru/checkout-credit-ui/v1/index.js"></script>
             <script type="text/javascript"><!--
                 jQuery(document).ready(function () {
                     const yooShopId = <?= $settings['yoomoney_shopid']; ?>;
                     const yooAmount = <?= $amount; ?>;
 
                     function createCheckoutCreditUI() {
-                        if (!YandexCheckoutCreditUI) {
+                        if (!CheckoutCreditUI) {
                             setTimeout(createCheckoutCreditUI, 200);
                         }
-                        const checkoutCreditUI = YandexCheckoutCreditUI({
+                        const yoomoneyСheckoutCreditUI = CheckoutCreditUI({
                             shopId: yooShopId,
                             sum: yooAmount
                         });
-                        const checkoutCreditButton = checkoutCreditUI({
+                        const checkoutCreditButton = yoomoneyСheckoutCreditUI({
                             type: 'button',
                             domSelector: '.yookassa_installments_button_container'
                         });
