@@ -1330,7 +1330,7 @@ class ClientTest extends TestCase
      */
     private function getFixtures($fileName)
     {
-        return file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . $fileName);
+        return file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'fixtures' . DIRECTORY_SEPARATOR . $fileName);
     }
 }
 

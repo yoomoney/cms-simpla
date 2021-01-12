@@ -1,12 +1,12 @@
 <?php
 /**
- * Version: 2.0.1
+ * Version: 2.0.2
  * License: Любое использование Вами программы означает полное и безоговорочное принятие Вами условий лицензионного договора, размещенного по адресу https://yoomoney.ru/doc.xml?id=527132 (далее – «Лицензионный договор»). Если Вы не принимаете условия Лицензионного договора в полном объёме, Вы не имеете права использовать программу в каких-либо целях.
  */
 
 require_once 'api/Simpla.php';
 require_once 'autoload.php';
-define('YOOMONEY_MODULE_VERSION', '2.0.1');
+define('YOOMONEY_MODULE_VERSION', '2.0.2');
 
 use YooKassa\Client;
 use YooKassa\Model\Payment;
@@ -39,11 +39,13 @@ class YooMoneyApi extends Simpla
         $payment_sitemode = ($settings['yoomoney_paymode'] == 'site') ? true : false;
         $payment_type     = ($payment_sitemode) ? $settings['yoomoney_paymenttype'] : '';
 
+        $logger = new YooMoneyLogger($settings['yookassa_debug']);
+
         if (($payment_type == \YooKassa\Model\PaymentMethodType::INSTALLMENTS)
             && ($amount < self::INSTALLMENTS_MIN_AMOUNT)
         ) {
             return '<span style="color:#ec0060;">Заплатить этим способом не получится: сумма должна быть больше '
-                   .self::INSTALLMENTS_MIN_AMOUNT.' рублей.</span>';
+                . self::INSTALLMENTS_MIN_AMOUNT . ' рублей.</span>';
         }
 
         if ($payment_type == \YooKassa\Model\PaymentMethodType::ALFABANK) {
@@ -123,7 +125,6 @@ class YooMoneyApi extends Simpla
             try {
                 $response = $apiClient->createPayment($paymentRequest, $idempotencyKey);
             } catch (Exception $exception) {
-                $logger = new YooMoneyLogger($settings['yookassa_debug']);
                 $logger->error($exception->getMessage());
             }
 
@@ -273,7 +274,9 @@ class YooMoneyApi extends Simpla
                     </div>
                 <?php
                 }
-            } else {
+            }
+
+            if (!$onKassaSide || ($onKassaSide && !$showInstallmentsButton)) {
                 ?>
                 <input type="submit" name="submit-button" value="<?= $button_text; ?>"
                        class="checkout_button yookassa_button">
