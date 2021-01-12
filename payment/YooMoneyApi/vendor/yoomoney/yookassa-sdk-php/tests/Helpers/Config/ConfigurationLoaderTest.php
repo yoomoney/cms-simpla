@@ -16,7 +16,7 @@ class ConfigurationLoaderTest extends TestCase
         $loader = new ConfigurationLoader();
         $loader->load($fileName);
         if (empty($fileName)) {
-            $fileName = __DIR__ . DIRECTORY_SEPARATOR;
+            $fileName = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "lib" . DIRECTORY_SEPARATOR . "configuration.json";
         }
         $data = file_get_contents($fileName);
         self::assertEquals(json_decode($data, true), $loader->getConfig());
@@ -27,7 +27,7 @@ class ConfigurationLoaderTest extends TestCase
         return array(
             array(null),
             array(''),
-            array(__DIR__ . DIRECTORY_SEPARATOR),
+            array(__DIR__ . DIRECTORY_SEPARATOR . 'test_config.json'),
         );
     }
 }

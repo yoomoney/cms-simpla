@@ -20,11 +20,11 @@ class ComposerStaticInit72a0a89f022b8535ec3a0ca68643c330
     public static $prefixDirsPsr4 = array (
         'YooKassa\\' => 
         array (
-            0 => __DIR__ . '/..',
+            0 => __DIR__ . '/..' . '/yoomoney/yookassa-sdk-php/lib',
         ),
         'Psr\\Log\\' => 
         array (
-            0 => __DIR__ . '/..',
+            0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
         ),
     );
 
