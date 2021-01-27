@@ -1,12 +1,12 @@
 <?php
 /**
- * Version: 2.0.2
+ * Version: 2.0.3
  * License: Любое использование Вами программы означает полное и безоговорочное принятие Вами условий лицензионного договора, размещенного по адресу https://yoomoney.ru/doc.xml?id=527132 (далее – «Лицензионный договор»). Если Вы не принимаете условия Лицензионного договора в полном объёме, Вы не имеете права использовать программу в каких-либо целях.
  */
 
 require_once 'api/Simpla.php';
 require_once 'autoload.php';
-define('YOOMONEY_MODULE_VERSION', '2.0.2');
+define('YOOMONEY_MODULE_VERSION', '2.0.3');
 
 use YooKassa\Client;
 use YooKassa\Model\Payment;
@@ -103,7 +103,12 @@ class YooMoneyApi extends Simpla
 
                 $purchases = $this->orders->get_purchases(array('order_id' => intval($order->id)));
 
-                $builder->setReceiptEmail($order->email);
+                if(!empty($order->email)) {
+                    $builder->setReceiptEmail($order->email);
+                }
+                if(!empty($order->phone)) {
+                    $builder->setReceiptPhone($order->phone);
+                }
 
                 $id_tax = (isset($settings['yookassa_api_tax']) && $settings['yookassa_api_tax'] ? $settings['yookassa_api_tax'] : self::DEFAULT_TAX_RATE_ID);
                 foreach ($purchases as $purchase) {
@@ -113,7 +118,7 @@ class YooMoneyApi extends Simpla
                     $builder->addReceiptItem($purchase->product_name, $purchase->price, $purchase->amount, $id_tax,
                         $paymentMode, $paymentSubject);
                 }
-                if ($order->delivery_id && $order->delivery_price > 0) {
+                if ($order->delivery_id && !$order->separate_delivery && $order->delivery_price > 0) {
                     $delivery = $this->delivery->get_delivery($order->delivery_id);
                     $builder->addReceiptShipping($delivery->name, $order->delivery_price, $id_tax,
                         $settings['yookassa_api_payment_mode'], $settings['yookassa_api_payment_subject']);
@@ -121,6 +126,10 @@ class YooMoneyApi extends Simpla
             }
 
             $paymentRequest = $builder->build();
+            $receipt = $paymentRequest->getReceipt();
+            if ($receipt instanceof \YooKassa\Model\Receipt) {
+                $receipt->normalize($paymentRequest->getAmount());
+            }
             $idempotencyKey = base64_encode($order->id.microtime());
             try {
                 $response = $apiClient->createPayment($paymentRequest, $idempotencyKey);
