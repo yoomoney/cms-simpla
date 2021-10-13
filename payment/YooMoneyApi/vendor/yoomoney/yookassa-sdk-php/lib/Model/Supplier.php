@@ -35,29 +35,24 @@ use YooKassa\Helpers\TypeCast;
 /**
  * Информация о поставщике товара или услуги.
  *
- * @package YooKassa\Model
+ * Можно передавать, если вы отправляете данные для формирования чека по сценарию - сначала платеж, потом чек.
+ *
+ * @property string $name Наименование поставщика
+ * @property string $phone Телефон пользователя. Указывается в формате ITU-T E.164
+ * @property string $inn ИНН пользователя (10 или 12 цифр)
+ *
+ * @package YooKassa
  */
 class Supplier extends AbstractObject implements SupplierInterface
 {
-    /** @var string Наименование поставщика. */
+    /** @var string */
     private $_name;
 
-    /** @var string Телефон пользователя. Указывается в формате ITU-T E.164 */
+    /** @var string */
     private $_phone;
 
-    /** @var string ИНН пользователя (10 или 12 цифр) */
+    /** @var string */
     private $_inn;
-
-    /**
-     * Supplier constructor.
-     * @param null|array $data
-     */
-    public function __construct($data = null)
-    {
-        if (!empty($data) && is_array($data)) {
-            $this->fromArray($data);
-        }
-    }
 
     /**
      * @return string

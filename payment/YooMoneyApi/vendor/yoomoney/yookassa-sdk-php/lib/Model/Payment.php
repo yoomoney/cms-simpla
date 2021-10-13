@@ -40,7 +40,7 @@ use YooKassa\Model\PaymentMethod\AbstractPaymentMethod;
  * @property string $status Текущее состояние платежа
  * @property RecipientInterface $recipient  Получатель платежа
  * @property AmountInterface $amount Сумма заказа
- * @property string $description Описание транзакци
+ * @property string $description Описание транзакции
  * @property AbstractPaymentMethod $paymentMethod Способ проведения платежа
  * @property AbstractPaymentMethod $payment_method Способ проведения платежа
  * @property \DateTime $createdAt Время создания заказа
@@ -57,14 +57,21 @@ use YooKassa\Model\PaymentMethod\AbstractPaymentMethod;
  * @property string $receiptRegistration Состояние регистрации фискального чека
  * @property string $receipt_registration Состояние регистрации фискального чека
  * @property Metadata $metadata Метаданные платежа указанные мерчантом
+ * @property bool $test Признак тестовой операции
  * @property CancellationDetailsInterface $cancellationDetails Комментарий к отмене платежа
  * @property CancellationDetailsInterface $cancellation_details Комментарий к отмене платежа
  * @property AuthorizationDetailsInterface $authorizationDetails Данные об авторизации платежа
  * @property AuthorizationDetailsInterface $authorization_details Данные об авторизации платежа
  * @property TransferInterface[] $transfers Данные о распределении платежа между магазинами
+ * @property AmountInterface $incomeAmount Сумма платежа, которую получит магазин
+ * @property AmountInterface $income_amount Сумма платежа, которую получит магазин
+ * @property Requestor $requestor Инициатор платежа
  */
 class Payment extends AbstractObject implements PaymentInterface
 {
+    /**
+     * Максимальная длина строки описания платежа
+     */
     const MAX_LENGTH_DESCRIPTION = 128;
 
     /**
@@ -302,7 +309,10 @@ class Payment extends AbstractObject implements PaymentInterface
             $length = mb_strlen((string)$value, 'utf-8');
             if ($length > self::MAX_LENGTH_DESCRIPTION) {
                 throw new InvalidPropertyValueException(
-                    'Invalid description value', 0, 'CreatePaymentRequest.description', $value
+                    'The value of the description parameter is too long. Max length is ' . self::MAX_LENGTH_DESCRIPTION,
+                    0,
+                    'CreatePaymentRequest.description',
+                    $value
                 );
             }
             $this->_description = (string)$value;
@@ -323,7 +333,8 @@ class Payment extends AbstractObject implements PaymentInterface
     }
 
     /**
-     * @param AbstractPaymentMethod $value
+     * Устанавливает используемый способ проведения платежа
+     * @param AbstractPaymentMethod $value Способ проведения платежа
      */
     public function setPaymentMethod(AbstractPaymentMethod $value)
     {
@@ -344,7 +355,7 @@ class Payment extends AbstractObject implements PaymentInterface
      * @param \DateTime|string|int $value Время создания заказа
      *
      * @throws EmptyPropertyValueException Выбрасывается если в метод была передана пустая дата
-     * @throws InvalidPropertyValueException Выбрасвается если передали строку, которую не удалось привести к дате
+     * @throws InvalidPropertyValueException Выбрасывается если передали строку, которую не удалось привести к дате
      * @throws InvalidPropertyValueTypeException|\Exception Выбрасывается если был передан аргумент, который невозможно
      * интерпретировать как дату или время
      */
@@ -616,8 +627,8 @@ class Payment extends AbstractObject implements PaymentInterface
     }
 
     /**
-     * Устанавливает transfers (массив распределения денег между магазинами)
-     * @param $value
+     * Устанавливает массив распределения денег между магазинами
+     * @param TransferInterface[] $value
      */
     public function setTransfers($value)
     {
@@ -636,12 +647,17 @@ class Payment extends AbstractObject implements PaymentInterface
         $this->_transfers = $value;
     }
 
+    /**
+     * Возвращает массив распределения денег между магазинами
+     * @return TransferInterface[]
+     */
     public function getTransfers()
     {
         return $this->_transfers;
     }
 
     /**
+     * Устанавливает сумму платежа, которую получит магазин, значение `amount` за вычетом комиссии ЮKassa
      * @param MonetaryAmount $amount
      */
     public function setIncomeAmount(MonetaryAmount $amount)
@@ -649,13 +665,18 @@ class Payment extends AbstractObject implements PaymentInterface
         $this->_incomeAmount = $amount;
     }
 
+    /**
+     * Возвращает сумму платежа, которую получит магазин, значение `amount` за вычетом комиссии ЮKassa
+     * @return MonetaryAmount Сумма платежа, которую получит магазин
+     */
     public function getIncomeAmount()
     {
         return $this->_incomeAmount;
     }
 
     /**
-     * @param $value
+     * Устанавливает инициатора платежа
+     * @param RequestorInterface|array $value
      */
     public function setRequestor($value)
     {
@@ -671,6 +692,7 @@ class Payment extends AbstractObject implements PaymentInterface
     }
 
     /**
+     * Возвращает инициатора платежа
      * @return RequestorInterface
      */
     public function getRequestor()
@@ -679,7 +701,8 @@ class Payment extends AbstractObject implements PaymentInterface
     }
 
     /**
-     * @return bool
+     * Возвращает признак тестовой операции
+     * @return bool Признак тестовой операции
      */
     public function getTest()
     {
@@ -687,7 +710,8 @@ class Payment extends AbstractObject implements PaymentInterface
     }
 
     /**
-     * @param bool $test
+     * Устанавливает признак тестовой операции
+     * @param bool $test Признак тестовой операции
      */
     public function setTest($test)
     {

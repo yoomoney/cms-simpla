@@ -36,7 +36,7 @@ use YooKassa\Model\Receipt\SettlementType;
 
 /**
  * Class Settlement
- * @package YooKassa\Model
+ * @package YooKassa
  *
  * @property string $type Вид оплаты в чеке
  * @property AmountInterface $amount Размер оплаты
@@ -52,22 +52,6 @@ class Settlement extends AbstractObject implements SettlementInterface
      * @var AmountInterface Размер оплаты
      */
     private $_amount;
-
-    /**
-     * Settlement constructor.
-     * @param array $data
-     */
-    public function __construct($data = null)
-    {
-        if (isset($data) && is_array($data)) {
-            if (!empty($data['type'])) {
-                $this->setType($data['type']);
-            }
-            if (!empty($data['amount'])) {
-                $this->setAmount($this->factoryAmount($data['amount']));
-            }
-        }
-    }
 
     /**
      * Возвращает вид оплаты в чеке (cashless | prepayment | postpayment | consideration)
