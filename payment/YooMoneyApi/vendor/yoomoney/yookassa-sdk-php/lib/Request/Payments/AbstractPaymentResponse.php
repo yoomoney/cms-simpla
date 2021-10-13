@@ -31,7 +31,6 @@ use YooKassa\Model\AmountInterface;
 use YooKassa\Model\AuthorizationDetails;
 use YooKassa\Model\CancellationDetails;
 use YooKassa\Model\Confirmation\ConfirmationCodeVerification;
-use YooKassa\Model\Confirmation\ConfirmationDeepLink;
 use YooKassa\Model\Confirmation\ConfirmationEmbedded;
 use YooKassa\Model\Confirmation\ConfirmationQr;
 use YooKassa\Model\Confirmation\ConfirmationRedirect;
@@ -49,7 +48,7 @@ use YooKassa\Model\Transfer;
 /**
  * Абстрактный класс ответа от API, возвращающего информацию о платеже
  *
- * @package YooKassa\Request\Payments
+ * @package YooKassa
  */
 abstract class AbstractPaymentResponse extends Payment implements PaymentInterface
 {
@@ -89,7 +88,7 @@ abstract class AbstractPaymentResponse extends Payment implements PaymentInterfa
             $this->setRecipient($recipient);
         }
         if (!empty($sourceArray['captured_at'])) {
-            $this->setCapturedAt(strtotime($sourceArray['captured_at']));
+            $this->setCapturedAt($sourceArray['captured_at']);
         }
         if (!empty($sourceArray['expires_at'])) {
             $this->setExpiresAt($sourceArray['expires_at']);
@@ -125,10 +124,6 @@ abstract class AbstractPaymentResponse extends Payment implements PaymentInterfa
 
                 case ConfirmationType::CODE_VERIFICATION:
                     $confirmation = new ConfirmationCodeVerification();
-                    break;
-
-                case ConfirmationType::DEEPLINK:
-                    $confirmation = new ConfirmationDeepLink();
                     break;
 
                 case ConfirmationType::QR:

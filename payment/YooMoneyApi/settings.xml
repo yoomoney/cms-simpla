@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module>
     <name>
-        ЮKassa (версия 2.0.3)
+        ЮKassa (версия 2.1.0)
     </name>
     <settings>
         <variable>yoomoney_shopid</variable>
@@ -63,7 +63,7 @@
             <value>alfabank</value>
         </options>
         <options>
-            <name>Сбербанк Онлайн</name>
+            <name>SberPay</name>
             <value>sberbank</value>
         </options>
         <options>

@@ -31,13 +31,12 @@ use YooKassa\Model\ConfirmationType;
 /**
  * Class ConfirmationAttributesFactory
  *
- * @package YooKassa\Model\ConfirmationAttributes
+ * @package YooKassa
  */
 class ConfirmationAttributesFactory
 {
     private $typeClassMap = array(
         ConfirmationType::CODE_VERIFICATION => 'ConfirmationAttributesCodeVerification',
-        ConfirmationType::DEEPLINK          => 'ConfirmationAttributesDeepLink',
         ConfirmationType::EXTERNAL          => 'ConfirmationAttributesExternal',
         ConfirmationType::REDIRECT          => 'ConfirmationAttributesRedirect',
         ConfirmationType::EMBEDDED          => 'ConfirmationAttributesEmbedded',
