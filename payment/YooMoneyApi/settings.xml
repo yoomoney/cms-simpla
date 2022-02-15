@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module>
     <name>
-        ЮKassa (версия 2.1.1)
+        ЮKassa (версия 2.1.2)
     </name>
     <settings>
         <variable>yoomoney_shopid</variable>
@@ -53,10 +53,6 @@
         <options>
             <name>Оплата наличными через кассы и терминалы</name>
             <value>cash</value>
-        </options>
-        <options>
-            <name>WebMoney</name>
-            <value>webmoney</value>
         </options>
         <options>
             <name>Альфа-Клик</name>
